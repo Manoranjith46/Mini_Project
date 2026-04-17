@@ -1,0 +1,390 @@
+.formContainer {
+  max-width: 700px;
+  margin: 2rem auto;
+  padding: 2rem;
+  background: var(--glass-bg);
+  backdrop-filter: var(--glass-blur);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--card-shadow);
+  border: 1px solid var(--glass-border);
+}
+
+.header {
+  margin-bottom: 2rem;
+  text-align: center;
+}
+
+.title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin-bottom: 0.5rem;
+}
+
+.subtitle {
+  color: var(--text-secondary);
+  font-size: 0.95rem;
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.formGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--text-main);
+}
+
+/* Category Grid */
+.categoryGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+}
+
+.categoryCard {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1rem;
+  background: var(--surface-color);
+  border: 2px solid transparent;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all var(--transition-speed);
+  color: var(--text-secondary);
+  font-size: 0.8rem;
+  text-align: center;
+}
+
+.categoryCard svg {
+  width: 28px;
+  height: 28px;
+}
+
+.categoryCard:hover {
+  border-color: var(--border-color);
+  transform: translateY(-2px);
+}
+
+.categoryCard.activeCategory {
+  border-color: var(--primary-color);
+  background: var(--secondary-color);
+  color: var(--primary-color);
+}
+
+/* Textarea */
+.textarea {
+  padding: 1rem;
+  border: 2px solid transparent;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  color: var(--text-main);
+  background: var(--surface-color);
+  transition: all var(--transition-speed);
+  resize: vertical;
+  min-height: 100px;
+  font-family: inherit;
+  line-height: 1.6;
+}
+
+.textarea:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 4px rgba(37, 99, 235, 0.1);
+}
+
+/* Voice Recording Section */
+.voiceSection {
+  background: var(--surface-color);
+  border-radius: var(--border-radius);
+  padding: 1.5rem;
+  border: 2px dashed var(--border-color);
+}
+
+.voiceRecorder {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.recordBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 1rem 1.5rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-full);
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+}
+
+.recordBtn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.recordBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.3);
+}
+
+.recordingIndicator {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.recordingDot {
+  width: 12px;
+  height: 12px;
+  background: var(--error-color);
+  border-radius: 50%;
+  animation: pulse 1s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(1.1); }
+}
+
+.recordingTime {
+  font-size: 1.25rem;
+  font-weight: 600;
+  color: var(--text-main);
+  font-family: monospace;
+}
+
+.stopBtn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1.5rem;
+  background: var(--error-color);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius-full);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+}
+
+.stopBtn svg {
+  width: 18px;
+  height: 18px;
+}
+
+.stopBtn:hover {
+  background: #dc2626;
+}
+
+.audioPlayer {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+.audio {
+  flex: 1;
+  height: 40px;
+}
+
+.removeAudio {
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(239, 68, 68, 0.1);
+  border: none;
+  border-radius: 50%;
+  color: var(--error-color);
+  cursor: pointer;
+  transition: all var(--transition-speed);
+}
+
+.removeAudio:hover {
+  background: var(--error-color);
+  color: white;
+}
+
+.removeAudio svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* Upload Area */
+.uploadArea {
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  text-align: center;
+  transition: all var(--transition-speed);
+  background: var(--surface-color);
+}
+
+.uploadArea:hover {
+  border-color: var(--primary-color);
+  background: var(--secondary-color);
+}
+
+.uploadLabel {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.75rem;
+  cursor: pointer;
+  color: var(--text-secondary);
+}
+
+.fileInput {
+  display: none;
+}
+
+.uploadIcon {
+  width: 40px;
+  height: 40px;
+  color: var(--primary-color);
+}
+
+.uploadHint {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+.imagePreview {
+  position: relative;
+  display: inline-block;
+}
+
+.previewImg {
+  max-width: 100%;
+  max-height: 200px;
+  border-radius: var(--border-radius);
+  object-fit: contain;
+}
+
+.removeImage {
+  position: absolute;
+  top: 0.5rem;
+  right: 0.5rem;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--error-color);
+  color: white;
+  border: none;
+  border-radius: 50%;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+}
+
+.removeImage svg {
+  width: 16px;
+  height: 16px;
+}
+
+.removeImage:hover {
+  transform: scale(1.1);
+}
+
+/* Location Button */
+.locationBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 1rem;
+  background: var(--surface-color);
+  border: 2px dashed var(--border-color);
+  border-radius: var(--border-radius);
+  color: var(--text-secondary);
+  font-size: 1rem;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+}
+
+.locationBtn svg {
+  width: 24px;
+  height: 24px;
+  color: var(--primary-color);
+}
+
+.locationBtn:hover {
+  border-color: var(--primary-color);
+  background: var(--secondary-color);
+}
+
+.locationBtn.locationActive {
+  border-style: solid;
+  border-color: var(--success-color);
+  background: rgba(16, 185, 129, 0.1);
+  color: var(--success-color);
+}
+
+.checkIcon {
+  width: 20px;
+  height: 20px;
+  color: var(--success-color);
+}
+
+/* Submit Button */
+.submitBtn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 1rem;
+  background: linear-gradient(135deg, var(--primary-color) 0%, var(--primary-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all var(--transition-speed);
+  box-shadow: 0 4px 15px rgba(37, 99, 235, 0.3);
+}
+
+.submitBtn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(37, 99, 235, 0.4);
+}
+
+.btnIcon {
+  width: 18px;
+  height: 18px;
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+  .formContainer {
+    margin: 1rem;
+    padding: 1.5rem;
+  }
+  
+  .categoryGrid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+}
