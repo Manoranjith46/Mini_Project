@@ -77,7 +77,6 @@ export const updateIssueStatus = async (
     const adminId = req.adminId;
 
     const validStatuses = [
-      "Reported",
       "In Progress",
       "Resolved",
       "Rejected",
@@ -170,9 +169,9 @@ export const getHandledIssuesByAdmin = async (
 ]);
 const issues = historyRecords.map((record) => ({
   ...record.issueDetails,
-  status: record.status,
+  status: record.status === "Reported" ? "Pending" : record.status,
   handledBy: record.handledBy,
-  lastStatus: record.lastStatus,
+  lastStatus: record.lastStatus === "Reported" ? "Pending" : record.lastStatus,
   lastUpdated: record.lastUpdated,
   isRejected: record.status === "Rejected",
 }));

@@ -1,4 +1,4 @@
-import React, { useState, useCallback } from "react";
+import React, { useState, useCallback, useRef, useEffect } from "react";
 import {
   MapContainer,
   TileLayer,
@@ -22,6 +22,7 @@ L.Icon.Default.mergeOptions({
 
 interface MapComponentProps {
   onLocationSelect: (lat: number, lng: number, address: string) => void;
+  searchLocation?: { lat: number; lng: number } | null;
 }
 
 /** Reverse-geocode using the free Nominatim API (OpenStreetMap) */
@@ -55,8 +56,18 @@ function LocationMarker({
   return position ? <Marker position={position} /> : null;
 }
 
-const MapComponent: React.FC<MapComponentProps> = ({ onLocationSelect }) => {
+/** Component to update map view when search location changes */
+function MapUpdater({ center }: { center: [number, number] }) {
+  const map = useMapEvents({});
+  useEffect(() => {
+    map.setView(center, 15);
+  }, [center, map]);
+  return null;
+}
+
+const MapComponent: React.FC<MapComponentProps> = ({ onLocationSelect, searchLocation }) => {
   const [markerPos, setMarkerPos] = useState<[number, number] | null>(null);
+  const mapRef = useRef<any>(null);
 
   const handleMapClick = useCallback(
     async (lat: number, lng: number) => {
@@ -67,8 +78,18 @@ const MapComponent: React.FC<MapComponentProps> = ({ onLocationSelect }) => {
     [onLocationSelect]
   );
 
+  // Update map when search location changes
+  useEffect(() => {
+    if (searchLocation && mapRef.current) {
+      const { lat, lng } = searchLocation;
+      setMarkerPos([lat, lng]);
+      mapRef.current.setView([lat, lng], 15);
+    }
+  }, [searchLocation]);
+
   return (
     <MapContainer
+      ref={mapRef}
       center={[20.932185, 77.757218]}
       zoom={12}
       scrollWheelZoom={true}

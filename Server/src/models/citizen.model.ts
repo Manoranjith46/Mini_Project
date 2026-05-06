@@ -14,7 +14,9 @@ const CitizenSchema = new Schema(
     email: { type: String, unique: true, required: true, lowercase: true },
     phonenumber: {
       type: String,
+      unique: true,
       required: [true, "User phone number required"],
+      index: true,
     },
   },
   { timestamps: true }

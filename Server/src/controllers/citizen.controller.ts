@@ -85,7 +85,13 @@ export const getIssuesByCitizen = async (req: Request, res: Response) => {
       .sort({ createdAt: -1 })
       .lean();
 
-    res.json({ issues });
+    // Transform "Reported" status to "Pending"
+    const transformedIssues = issues.map((issue: any) => ({
+      ...issue,
+      status: issue.status === "Reported" ? "Pending" : issue.status,
+    }));
+
+    res.json({ issues: transformedIssues });
   } catch (error) {
     console.error("Error fetching issues:", error);
     res.status(500).json({ message: "Internal Server Error" });

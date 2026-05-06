@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
-import { ArrowLeft, MapPin, Upload, Send } from "lucide-react";
+import { ArrowLeft, MapPin, Upload, Send, Search } from "lucide-react";
 import { Link, useNavigate } from "react-router-dom";
 import MapComponent from "../components/MapBox";
 import { toast } from "sonner";
@@ -31,6 +31,8 @@ const ReportIssue = () => {
   });
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [loading, setLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -54,6 +56,40 @@ const ReportIssue = () => {
   const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
     if (file) setSelectedFile(file);
+  };
+
+  // Geocode location from search query
+  const handleLocationSearch = async () => {
+    if (!searchQuery.trim()) {
+      toast.error("Please enter a city or location name");
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(searchQuery)}`
+      );
+      const data = await response.json();
+
+      if (data && data.length > 0) {
+        const result = data[0];
+        const lat = parseFloat(result.lat);
+        const lng = parseFloat(result.lon);
+        setSearchLocation({ lat, lng });
+        toast.success(`Found: ${result.display_name}`);
+      } else {
+        toast.error("Location not found. Please try a different search.");
+      }
+    } catch (error) {
+      console.error("Error searching location:", error);
+      toast.error("Failed to search location");
+    }
+  };
+
+  const handleKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === "Enter") {
+      handleLocationSearch();
+    }
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -163,9 +199,30 @@ const ReportIssue = () => {
                 <span>Select Issue Location</span>
               </CardTitle>
             </CardHeader>
-            <CardContent>
+            <CardContent className="space-y-4">
+              {/* Search Field */}
+              <div className="flex gap-2">
+                <Input
+                  type="text"
+                  placeholder="Search city or location (e.g., Delhi, Mumbai)..."
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onKeyPress={handleKeyPress}
+                  className="flex-1 shadow-sm"
+                />
+                <Button
+                  onClick={handleLocationSearch}
+                  className="px-4 bg-blue-600 hover:bg-blue-700"
+                >
+                  <Search className="h-4 w-4" />
+                </Button>
+              </div>
+
               <div className="h-96 rounded-lg overflow-hidden border">
-                <MapComponent onLocationSelect={handleLocationSelect} />
+                <MapComponent
+                  onLocationSelect={handleLocationSelect}
+                  searchLocation={searchLocation}
+                />
               </div>
               {formData.location.latitude && formData.location.longitude && (
                 <div className="mt-4 p-3 bg-muted rounded-lg">

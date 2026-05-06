@@ -44,8 +44,8 @@ const IssueSchema = new Schema<IIssue & Document>(
     },
     status: {
       type: String,
-      enum: ["Reported", "In Progress", "Resolved", "Rejected", "Pending"],
-      default: "Reported",
+      enum: ["In Progress", "Resolved", "Rejected", "Pending"],
+      default: "Pending",
     },
     location: {
       type: locationSchema,
@@ -59,6 +59,14 @@ const IssueSchema = new Schema<IIssue & Document>(
       type: Schema.Types.ObjectId,
       ref: "Admin",
     },
+    upvotes: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    upvotedBy: [{
+      type: String,
+    }],
   },
   { timestamps: true }
 );

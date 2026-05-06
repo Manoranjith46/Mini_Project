@@ -81,6 +81,7 @@ export const citizenSignin = async (
     const token = jwt.sign(
       {
         id: existingCitizen._id,
+        phone: existingCitizen.phonenumber,
         role: "citizen",
       },
       process.env.JWT_PASSWORD!,
@@ -90,6 +91,7 @@ export const citizenSignin = async (
       token,
       user: {
         id: existingCitizen._id,
+        phone: existingCitizen.phonenumber,
         fullName: existingCitizen.fullName,
         email: existingCitizen.email,
         phonenumber: existingCitizen.phonenumber,

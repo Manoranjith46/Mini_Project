@@ -105,7 +105,12 @@ const CitizenProfile = () => {
         }
 
         if (response.ok && Array.isArray(data.issues)) {
-          setMyIssues(data.issues);
+          // Transform any "Reported" status to "Pending" for display
+          const transformedIssues = data.issues.map((issue: any) => ({
+            ...issue,
+            status: issue.status === "Reported" ? "Pending" : issue.status,
+          }));
+          setMyIssues(transformedIssues);
         } else {
           console.error("Failed to fetch issues:", data.message);
           toast.error(data.message || "Failed to load issues");
@@ -125,6 +130,7 @@ const CitizenProfile = () => {
     switch (status) {
       case "Rejected":
         return "bg-red-200/70 text-red-900";
+      case "Reported":
       case "Pending":
         return "bg-yellow-200/70 text-yellow-900";
       case "Resolved":

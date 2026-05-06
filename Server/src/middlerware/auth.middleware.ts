@@ -1,8 +1,10 @@
 import { Request, Response, NextFunction } from "express";
 import jwt from "jsonwebtoken";
+import { CitizenModel } from "../models/citizen.model";
 
 interface DecodedToken {
   id: string;
+  phone?: string;
   role: "admin" | "citizen";
 }
 
@@ -10,17 +12,18 @@ declare global {
   namespace Express {
     interface Request {
       citizenId?: string;
+      citizenPhone?: string;
       adminId?: string;
       role?: "admin" | "citizen";
     }
   }
 }
 
-export const authMiddleware = (
+export const authMiddleware = async (
   req: Request,
   res: Response,
   next: NextFunction
-): void => {
+): Promise<void> => {
   const authHeader = req.headers["authorization"];
 
   console.log("Authorization Header:", authHeader);
@@ -45,6 +48,20 @@ export const authMiddleware = (
     //@ts-ignore
     if (decoded.role === "citizen") {
       req.citizenId = decoded.id;
+      req.citizenPhone = decoded.phone;
+      
+      // If phone is not in JWT (old tokens), fetch from database
+      if (!req.citizenPhone) {
+        try {
+          const citizen = await CitizenModel.findById(decoded.id);
+          if (citizen) {
+            req.citizenPhone = citizen.phonenumber;
+            console.log("Fetched phone from DB:", req.citizenPhone);
+          }
+        } catch (err) {
+          console.error("Error fetching citizen phone:", err);
+        }
+      }
     } else if (decoded.role === "admin") {
       req.adminId = decoded.id;
     }

@@ -48,7 +48,7 @@ export const createIssue = async (
       title,
       description,
       location: parsedLocation,
-      status: "Reported",
+      status: "Pending",
       multimediaId: (req as any).multimediaId,
     });
 
@@ -77,22 +77,33 @@ export const createIssue = async (
 export const getIssues = async (req: Request, res: Response) => {
   try {
     const issues = await IssueModel.find({})
-      .populate("citizenId", "fullName")
-      .lean();
+      .populate("citizenId", "fullName phonenumber");
 
     const issuesWithMedia = await Promise.all(
       issues.map(async (issue) => {
         const media = await MultimediaModel.find({ issueID: issue._id });
+        const issueObj = issue.toObject ? issue.toObject() : issue;
+        
+        // Clean up upvotedBy array - remove null, undefined, and invalid entries
+        let upvotedByList = Array.isArray(issueObj.upvotedBy) ? issueObj.upvotedBy : [];
+        upvotedByList = upvotedByList.filter(
+          (phone) => phone && phone !== null && phone !== 'undefined' && phone !== 'null' && String(phone).trim() !== ''
+        );
+        
         return {
-          _id: issue._id,
-          title: issue.title,
-          description: issue.description,
-          type: issue.issueType,
-          location: issue.location, //  send only address
-          reportedBy: (issue.citizenId as any)?.fullName || "Anonymous",
-          reportedAt: issue.createdAt,
+          _id: issueObj._id,
+          title: issueObj.title,
+          description: issueObj.description,
+          type: issueObj.issueType,
+          location: issueObj.location,
+          reportedBy: (issueObj.citizenId as any)?.fullName || "Anonymous",
+          reportedByID: (issueObj.citizenId as any)?._id || null,
+          reportedByPhone: (issueObj.citizenId as any)?.phonenumber || null,
+          reportedAt: issueObj.createdAt,
           image: media.length > 0 ? media[0].url : null,
-          status: issue.status,
+          status: issueObj.status === "Reported" ? "Pending" : issueObj.status,
+          upvotes: Math.max(0, upvotedByList.length), // Ensure upvotes matches array length
+          upvotedBy: upvotedByList,
         };
       })
     );
@@ -103,5 +114,108 @@ export const getIssues = async (req: Request, res: Response) => {
     res.status(500).json({
       message: "Something went wrong",
     });
+  }
+};
+
+export const upvoteIssue = async (req: Request, res: Response) => {
+  try {
+    const { issueId } = req.params;
+    const citizenPhone = (req as any).citizenPhone;
+
+    console.log("Upvote request - citizenPhone:", citizenPhone);
+
+    if (!citizenPhone) {
+      res.status(401).json({ message: "Phone number not found in token" });
+      return;
+    }
+
+    const issue = await IssueModel.findById(issueId);
+    if (!issue) {
+      res.status(404).json({ message: "Issue not found" });
+      return;
+    }
+
+    // Initialize upvotedBy if it doesn't exist
+    if (!issue.upvotedBy) {
+      issue.upvotedBy = [];
+    }
+
+    // Clean up garbage data
+    issue.upvotedBy = issue.upvotedBy.filter(
+      (phone) => phone && phone !== null && phone !== 'undefined' && phone !== 'null' && String(phone).trim() !== ''
+    );
+
+    const phoneStr = String(citizenPhone).trim();
+    
+    // Check if citizen has already upvoted (using phone number)
+    const hasUpvoted = issue.upvotedBy.includes(phoneStr);
+    console.log("Has upvoted:", hasUpvoted, "phoneStr:", phoneStr, "array:", issue.upvotedBy);
+
+    if (hasUpvoted) {
+      // Remove upvote
+      issue.upvotedBy = issue.upvotedBy.filter((phone) => String(phone).trim() !== phoneStr);
+    } else {
+      // Add upvote
+      issue.upvotedBy.push(phoneStr);
+    }
+
+    // Keep upvotes in sync with array length
+    issue.upvotes = issue.upvotedBy.length;
+    
+    // Mark the array as modified for Mongoose
+    issue.markModified('upvotedBy');
+    
+    await issue.save();
+    console.log("After upvote - upvotes:", issue.upvotes, "upvotedBy:", issue.upvotedBy);
+
+    res.json({
+      message: hasUpvoted ? "Upvote removed" : "Upvoted successfully",
+      upvotes: issue.upvotes,
+      isUpvoted: !hasUpvoted,
+    });
+  } catch (error) {
+    console.error("Error upvoting issue:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const deleteIssue = async (req: Request, res: Response) => {
+  try {
+    const { issueId } = req.params;
+    const citizenId = (req as any).citizenId;
+
+    if (!issueId || !citizenId) {
+      res.status(400).json({ message: "Missing required fields" });
+      return;
+    }
+
+    const issue = await IssueModel.findById(issueId);
+    if (!issue) {
+      res.status(404).json({ message: "Issue not found" });
+      return;
+    }
+
+    // Check if the citizen owns this issue
+    if (issue.citizenId.toString() !== citizenId.toString()) {
+      res.status(403).json({ message: "You can only delete your own issues" });
+      return;
+    }
+
+    // Check if issue is In Progress
+    if (issue.status === "In Progress") {
+      res.status(400).json({ message: "Cannot delete issue that is In Progress" });
+      return;
+    }
+
+    // Delete associated multimedia
+    await MultimediaModel.deleteMany({ issueID: issueId });
+
+    // Delete the issue
+    await IssueModel.findByIdAndDelete(issueId);
+
+    res.json({ message: "Issue deleted successfully" });
+  } catch (error) {
+    console.error("Error deleting issue:", error);
+    res.status(500).json({ message: "Internal server error" });
   }
 };

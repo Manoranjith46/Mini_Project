@@ -27,15 +27,10 @@ const Index = () => {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div
-        className="fixed inset-0 z-0 "
+        className="fixed inset-0 z-0 bg-blue-100"
         style={{
-          backgroundImage: `
-    radial-gradient(circle at top left, rgba(255,255,255,0.6) 0%, transparent 35%),
-    radial-gradient(circle at bottom right, rgba(255,255,255,0.5) 0%, transparent 35%),
-    linear-gradient(135deg, #f2f6f6 0%, #e8ecef 35%, #f9eeee 100%)
-  `,
+          backgroundColor: "#e0f2fe",
           backgroundAttachment: "fixed",
-          backgroundBlendMode: "screen",
         }}
       />
       <div className="relative z-10">

@@ -198,9 +198,9 @@ const AdminHome = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.6 }}
-      className="min-h-screen bg-[#f3f6f8]"
+      className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100"
     >
-      <div className="min-h-screen bg-[#f3f6f8]">
+      <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-100">
         <HeaderAfterAuth />
 
         <div className="pt-20 container mx-auto px-4 py-8 space-y-8">

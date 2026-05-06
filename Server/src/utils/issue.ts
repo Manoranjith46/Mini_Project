@@ -12,7 +12,7 @@ export interface IIssue {
     | "Other";
   title: string;
   description: string;
-  status?: "Reported" | "In Progress" | "Resolved" | "Rejected";
+  status?: "In Progress" | "Resolved" | "Rejected" | "Pending";
   location: ILocation; // embedded location object
   media?: Types.ObjectId[]; // refs to multimedia
   createdAt?: Date;
