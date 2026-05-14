@@ -1,21 +1,17 @@
 import multer from "multer";
-import path from "path";
-import fs from "fs";
+import { GridFsStorage } from "multer-gridfs-storage";
 import "dotenv/config";
 
-const uploadDir = path.join(process.cwd(), "uploads");
+const DATABASE_URL = process.env.DATABASE_URL || "";
 
-// Ensure the directory exists
-if (!fs.existsSync(uploadDir)) {
-  fs.mkdirSync(uploadDir, { recursive: true });
-}
-
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, uploadDir);
-  },
-  filename: function (req, file, cb) {
-    cb(null, `${Date.now()}-${file.originalname}`);
+const storage = new GridFsStorage({
+  url: DATABASE_URL,
+  options: { useNewUrlParser: true, useUnifiedTopology: true },
+  file: (_req: any, file: any) => {
+    return {
+      bucketName: "uploads",
+      filename: `${Date.now()}-${file.originalname}`,
+    };
   },
 });
 

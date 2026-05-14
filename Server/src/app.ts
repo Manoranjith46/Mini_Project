@@ -4,6 +4,9 @@ import cookieParser from "cookie-parser";
 import adminRoutes from "./routes/admin.routes";
 import citizenRoutes from "./routes/citizen.routes";
 import issueRoutes from "./routes/issue.routes";
+import fileRoutes from "./routes/file.routes";
+import authRoutes from "./routes/auth.routes";
+import departmentRoutes from "./routes/department.routes";
 
 const app = express();
 
@@ -16,15 +19,16 @@ app.use(
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 app.use(express.static("public"));
-app.use("/uploads", express.static("uploads"));
 app.use(cookieParser());
 
 
 // routes declaration
-
+app.use("/api/v1", authRoutes);
 app.use("/api/v1", citizenRoutes);
 app.use("/api/v1", adminRoutes);
 app.use("/api/v1", issueRoutes);
+app.use("/api/v1", fileRoutes);
+app.use("/api/v1", departmentRoutes);
 app.use("/api", (_req, res) => {
   res.status(404).json({ message: "API route not found" });
 });

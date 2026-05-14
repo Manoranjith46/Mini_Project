@@ -1,12 +1,12 @@
 import { useState } from "react";
-import Header from "../components/Header.tsx";
-import Features from "../components/Features.tsx";
-import HowItWorks from "../components/HowItWorks.tsx";
-import Hero from "../components/Hero.tsx";
-import IssueTypes from "../components/IssueTypes.tsx";
-import CTA from "../components/CTA.tsx";
-import Footer from "../components/Footer.tsx";
-import { AuthProvider } from "../contexts/AuthContext.tsx";
+import Header from "./components/Header.tsx";
+import Features from "./components/Features.tsx";
+import HowItWorks from "./components/HowItWorks.tsx";
+import Hero from "./components/Hero.tsx";
+import IssueTypes from "./components/IssueTypes.tsx";
+import CTA from "./components/CTA.tsx";
+import Footer from "./components/Footer.tsx";
+import { AuthProvider } from "../context/AuthContext.tsx";
 
 const Index = () => {
   const [featuresAnimationKey, setFeaturesAnimationKey] = useState(0);

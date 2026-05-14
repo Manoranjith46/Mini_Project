@@ -1,4 +1,4 @@
-import { useLoader } from "./contexts/LoaderContext";
+import { useLoader } from "./context/LoaderContext";
 import Player from "lottie-react";
 import starloader from "./assets/animations/starloder.json";
 import { motion } from "framer-motion";

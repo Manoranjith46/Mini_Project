@@ -12,9 +12,11 @@ export interface IIssue {
     | "Other";
   title: string;
   description: string;
-  status?: "In Progress" | "Resolved" | "Rejected" | "Pending";
+  status?: "In Progress" | "Resolved" | "Rejected" | "Pending" | "Reported";
   location: ILocation; // embedded location object
   media?: Types.ObjectId[]; // refs to multimedia
+  upvotes?: number;
+  upvotedBy?: string[];
   createdAt?: Date;
   updatedAt?: Date;
   handledBy?: Object | string; 

@@ -1,8 +1,4 @@
 import { Router } from "express";
-import {
-  adminSignin,
-  adminSignup,
-} from "../controllers/auth-controllers/admin.auth.controller";
 import { authMiddleware } from "../middlerware/auth.middleware";
 import {
   deleteIssueByAdmin,
@@ -15,9 +11,7 @@ import { getIssues } from "../controllers/issues.controllers";
 
 const router = Router();
 
-router.post("/admin/signup", adminSignup);
-
-router.post("/admin/signin", adminSignin);
+// Auth routes removed — now handled by unified auth.routes.ts
 
 router.get("/admin/profile/:id", authMiddleware, getAdminProfile);
 

@@ -1,6 +1,8 @@
 import { Request, Response } from "express";
 import { IssueModel } from "../models/issue.model";
 import { MultimediaModel } from "../models/multimedia.model";
+import mongoose from "mongoose";
+import { getGridFSBucket } from "../config/gridfs";
 
 export const createIssue = async (
   req: Request,
@@ -57,7 +59,7 @@ export const createIssue = async (
         MultimediaModel.create({
           issueID: issue._id,
           fileType: file.mimetype.startsWith("video") ? "video" : "image",
-          url: "/uploads/" + file.filename,
+          url: "/api/v1/files/" + file.filename,
           filename: file.originalname,
         })
       )
@@ -85,9 +87,9 @@ export const getIssues = async (req: Request, res: Response) => {
         const issueObj = issue.toObject ? issue.toObject() : issue;
         
         // Clean up upvotedBy array - remove null, undefined, and invalid entries
-        let upvotedByList = Array.isArray(issueObj.upvotedBy) ? issueObj.upvotedBy : [];
+        let upvotedByList = Array.isArray(issueObj.upvotedBy) ? (issueObj.upvotedBy as string[]) : [];
         upvotedByList = upvotedByList.filter(
-          (phone) => phone && phone !== null && phone !== 'undefined' && phone !== 'null' && String(phone).trim() !== ''
+          (phone: string) => phone && phone !== null && phone !== 'undefined' && phone !== 'null' && String(phone).trim() !== ''
         );
         
         return {
@@ -101,7 +103,7 @@ export const getIssues = async (req: Request, res: Response) => {
           reportedByPhone: (issueObj.citizenId as any)?.phonenumber || null,
           reportedAt: issueObj.createdAt,
           image: media.length > 0 ? media[0].url : null,
-          status: issueObj.status === "Reported" ? "Pending" : issueObj.status,
+          status: (issueObj.status as string) === "Reported" ? "Pending" : issueObj.status,
           upvotes: Math.max(0, upvotedByList.length), // Ensure upvotes matches array length
           upvotedBy: upvotedByList,
         };
@@ -141,8 +143,8 @@ export const upvoteIssue = async (req: Request, res: Response) => {
     }
 
     // Clean up garbage data
-    issue.upvotedBy = issue.upvotedBy.filter(
-      (phone) => phone && phone !== null && phone !== 'undefined' && phone !== 'null' && String(phone).trim() !== ''
+    issue.upvotedBy = (issue.upvotedBy as string[]).filter(
+      (phone: string) => phone && phone !== null && phone !== 'undefined' && phone !== 'null' && String(phone).trim() !== ''
     );
 
     const phoneStr = String(citizenPhone).trim();
@@ -153,7 +155,7 @@ export const upvoteIssue = async (req: Request, res: Response) => {
 
     if (hasUpvoted) {
       // Remove upvote
-      issue.upvotedBy = issue.upvotedBy.filter((phone) => String(phone).trim() !== phoneStr);
+      issue.upvotedBy = (issue.upvotedBy as string[]).filter((phone: string) => String(phone).trim() !== phoneStr);
     } else {
       // Add upvote
       issue.upvotedBy.push(phoneStr);
@@ -207,7 +209,23 @@ export const deleteIssue = async (req: Request, res: Response) => {
       return;
     }
 
-    // Delete associated multimedia
+    // Delete associated multimedia and GridFS files
+    const mediaFiles = await MultimediaModel.find({ issueID: issueId });
+    try {
+      const bucket = getGridFSBucket();
+      const db = mongoose.connection.db!;
+      for (const media of mediaFiles) {
+        const filename = media.url.split("/").pop();
+        if (filename) {
+          const gridFiles = await db.collection("uploads.files").find({ filename }).toArray();
+          for (const gf of gridFiles) {
+            await bucket.delete(gf._id);
+          }
+        }
+      }
+    } catch (gridErr) {
+      console.error("Error cleaning up GridFS files:", gridErr);
+    }
     await MultimediaModel.deleteMany({ issueID: issueId });
 
     // Delete the issue

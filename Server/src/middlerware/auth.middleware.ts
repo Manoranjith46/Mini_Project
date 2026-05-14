@@ -5,7 +5,7 @@ import { CitizenModel } from "../models/citizen.model";
 interface DecodedToken {
   id: string;
   phone?: string;
-  role: "admin" | "citizen";
+  role: "admin" | "citizen" | "department";
 }
 
 declare global {
@@ -14,7 +14,8 @@ declare global {
       citizenId?: string;
       citizenPhone?: string;
       adminId?: string;
-      role?: "admin" | "citizen";
+      departmentId?: string;
+      role?: "admin" | "citizen" | "department";
     }
   }
 }
@@ -64,6 +65,8 @@ export const authMiddleware = async (
       }
     } else if (decoded.role === "admin") {
       req.adminId = decoded.id;
+    } else if (decoded.role === "department") {
+      req.departmentId = decoded.id;
     }
     req.role = decoded.role;
     next();

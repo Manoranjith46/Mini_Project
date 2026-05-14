@@ -1,8 +1,4 @@
 import { Router } from "express";
-import {
-  citizenSignin,
-  citizenSignup,
-} from "../controllers/auth-controllers/citizen.auth.controller";
 import { authMiddleware } from "../middlerware/auth.middleware";
 import {
   deleteIssue,
@@ -13,9 +9,7 @@ import {
 
 const router = Router();
 
-router.post("/citizen/signup", citizenSignup);
-
-router.post("/citizen/signin", citizenSignin);
+// Auth routes removed — now handled by unified auth.routes.ts
 
 router.get("/citizen/profile/", authMiddleware, getCitizenProfile);
 

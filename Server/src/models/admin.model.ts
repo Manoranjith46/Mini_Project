@@ -3,18 +3,14 @@ import { model, Schema } from "mongoose";
 const AdminSchema = new Schema(
   {
     fullName: { type: String, required: true },
-    password: {
-      type: String,
-      required: [true],
-      min: [8],
-    },
-    email: { type: String, required: true, lowercase: true },
+    email: { type: String, sparse: true, lowercase: true },
     phonenumber: {
       type: String,
-      required: [true],
+      required: [true, "Phone number required"],
     },
     department: { type: String, required: true },
     adminAccessCode: { type: Number, required: true, unique: true },
+    employeeId: { type: String, unique: true, sparse: true },
   },
   { timestamps: true }
 );
