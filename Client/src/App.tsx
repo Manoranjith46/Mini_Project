@@ -16,7 +16,9 @@ import AdminHome from "./pages/Admin/AdminHome";
 import AdminProfile from "./pages/Admin/AdminProfile";
 import AdminLayout from "./pages/Admin/AdminLayout";
 import AdminReports from "./pages/Admin/AdminReports";
+import AdminViewReport from "./pages/Admin/AdminViewReport";
 import AdminManagers from "./pages/Admin/AdminManagers";
+import AdminAddManager from "./pages/Admin/AdminAddManager";
 import AdminNoticeBoard from "./pages/Admin/AdminNoticeBoard";
 import AdminAnalytics from "./pages/Admin/AdminAnalytics";
 import NotFound from "./pages/NotFound";
@@ -104,7 +106,9 @@ const AppRoutes = () => {
         >
           <Route index element={<AdminHome />} />
           <Route path="reports" element={<AdminReports />} />
+          <Route path="reports/:id" element={<MotionWrapper><AdminViewReport /></MotionWrapper>} />
           <Route path="managers" element={<AdminManagers />} />
+          <Route path="managers/add" element={<AdminAddManager />} />
           <Route path="notice-board" element={<AdminNoticeBoard />} />
           <Route path="analytics" element={<AdminAnalytics />} />
           <Route path="profile" element={<AdminProfile />} />

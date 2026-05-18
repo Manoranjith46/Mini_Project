@@ -8,20 +8,9 @@ const DepartmentSchema = new Schema(
       unique: true,
       required: [true, "Phone number required"],
     },
-    department: {
-      type: String,
-      enum: [
-        "electricity",
-        "water-supply",
-        "roads",
-        "sanitation",
-        "parks",
-        "public-health",
-      ],
-      required: true,
-    },
     designation: { type: String, default: "Department Manager" },
     employeeId: { type: String, unique: true, required: true },
+    place: { type: String, default: "Unassigned" },
   },
   { timestamps: true }
 );

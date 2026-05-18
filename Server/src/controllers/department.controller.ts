@@ -2,10 +2,97 @@ import { Request, Response } from "express";
 import { DepartmentModel } from "../models/department.model";
 import { IssueModel } from "../models/issue.model";
 import { MultimediaModel } from "../models/multimedia.model";
+import { UserModel } from "../models/user.model";
 
 interface AuthRequest extends Request {
   departmentId?: string;
 }
+
+export const getAllDepartments = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const departments = await DepartmentModel.find({}).select(
+      "fullName phonenumber email designation employeeId place createdAt"
+    );
+
+    res.json({ departments });
+  } catch (error) {
+    console.error("Error fetching all departments:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
+
+export const createDepartmentManager = async (
+  req: Request,
+  res: Response
+): Promise<void> => {
+  try {
+    const { fullName, phonenumber, employeeId, place, designation } = req.body;
+
+    if (!fullName || !phonenumber || !employeeId || !place) {
+      res.status(400).json({
+        message: "Full name, phone number, employee ID, and zone are required",
+      });
+      return;
+    }
+
+    const normalizedEmployeeId = String(employeeId).trim().toUpperCase();
+    const normalizedPhoneNumber = String(phonenumber).trim();
+
+    const existingManager = await DepartmentModel.findOne({
+      $or: [
+        { phonenumber: normalizedPhoneNumber },
+        { employeeId: normalizedEmployeeId },
+      ],
+    });
+
+    if (existingManager) {
+      res.status(409).json({
+        message: "A manager with this phone number or employee ID already exists",
+      });
+      return;
+    }
+
+    const existingUser = await UserModel.findOne({
+      $or: [
+        { phonenumber: normalizedPhoneNumber },
+        { employeeId: normalizedEmployeeId },
+      ],
+    });
+
+    if (existingUser) {
+      res.status(409).json({
+        message: "A login user with this phone number or employee ID already exists",
+      });
+      return;
+    }
+
+    const manager = await DepartmentModel.create({
+      fullName: String(fullName).trim(),
+      phonenumber: normalizedPhoneNumber,
+      employeeId: normalizedEmployeeId,
+      place: String(place).trim(),
+      designation: designation?.trim() || "Department Manager",
+    });
+
+    await UserModel.create({
+      phonenumber: normalizedPhoneNumber,
+      employeeId: normalizedEmployeeId,
+      role: "department",
+      roleRefId: manager._id,
+    });
+
+    res.status(201).json({
+      message: "Manager created successfully",
+      manager,
+    });
+  } catch (error) {
+    console.error("Error creating department manager:", error);
+    res.status(500).json({ message: "Internal Server Error" });
+  }
+};
 
 export const getDepartmentProfile = async (
   req: AuthRequest,
@@ -66,8 +153,19 @@ export const getDepartmentIssues = async (
   res: Response
 ): Promise<void> => {
   try {
-    // For now, return all issues (can filter by department type later)
-    const issues = await IssueModel.find({})
+    const departmentId = req.departmentId;
+
+    // Get the department manager's place/corporation.
+    const department = await DepartmentModel.findById(departmentId).lean();
+    if (!department) {
+      res.status(404).json({ message: "Department manager not found" });
+      return;
+    }
+
+    // Fetch issues for the manager's place/corporation.
+    const issues = await IssueModel.find({
+      "location.address": department.place,
+    })
       .populate("citizenId", "fullName phonenumber")
       .sort({ createdAt: -1 });
 

@@ -1,6 +1,6 @@
 import { useLocation, Outlet } from "react-router-dom";
 import { motion, AnimatePresence } from "framer-motion";
-import Sidebar from "./components/Sidebar";
+import Sidebar from "./components/sidebar/sidebar";
 
 const AdminLayout = () => {
   const location = useLocation();

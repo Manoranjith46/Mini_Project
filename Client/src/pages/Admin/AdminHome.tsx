@@ -1,176 +1,110 @@
 import { useEffect, useState } from "react";
 import { Button } from "../components/ui/button";
-import { Input } from "../components/ui/input";
-import { Badge } from "../components/ui/badge";
 import {
-  Edit,
-  Search,
-  Trash2,
-  User,
-  ChevronsUpDown,
+  BarChart3,
+  TrendingUp,
+  CheckCircle,
+  Clock,
+  AlertCircle,
+  XCircle,
+  Users,
+  RefreshCw,
 } from "lucide-react";
-import {
-  DropdownMenu,
-  DropdownMenuCheckboxItem,
-  DropdownMenuContent,
-  DropdownMenuTrigger,
-} from "../components/ui/dropdown-menu";
 import { Link } from "react-router-dom";
-
 import { motion } from "framer-motion";
-import Player from "lottie-react";
-import starloader from "../../assets/animations/starloder.json";
 import { useLoader } from "../../context/LoaderContext";
+import AdminLoader from "./components/loader/loader";
 
-
-
-interface Reporter {
-  _id: string;
-  fullName: string;
-  phonenumber?: string;
-}
-
-interface Issues {
-  _id: string;
-  title: string;
-  description: string;
-  type: string;
-  location: {
-    address: string;
-    latitude: number;
-    longitude: number;
-  };
-  reportedBy: string;
-  reportedAt: string;
-  image: string;
-  status: string;
-  reporterCount?: number;
-  reporters?: Reporter[];
+interface DashboardStats {
+  totalIssues: number;
+  resolvedIssues: number;
+  inProgressIssues: number;
+  pendingIssues: number;
+  rejectedIssues: number;
+  handledByAdmin: number;
+  resolutionRate: number;
+  issuesByType: Array<{ _id: string; count: number }>;
+  recentIssues: Array<{
+    _id: string;
+    title: string;
+    status: string;
+    type: string;
+    createdAt: string;
+  }>;
 }
 
 const AdminHome = () => {
-  const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilters, setStatusFilters] = useState<string[]>([]);
+  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [loading, setLoading] = useState(true);
-  const [issues, setIssues] = useState<Issues[]>([]);
-  const [openDropdown, setOpenDropdown] = useState<string | null>(null);
+  const [refreshing, setRefreshing] = useState(false);
   const { hideLoader } = useLoader();
 
-  useEffect(() => {
-    const fetchIssues = async () => {
-      try {
-        const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/all-issues`, {
+  const fetchDashboardStats = async () => {
+    try {
+      setRefreshing(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/admin/dashboard-stats`,
+        {
           headers: {
             Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
           },
-        });
-        const data = await response.json();
-        if (Array.isArray(data.issues)) {
-          setIssues(data.issues);
-        } else {
-          setIssues([]);
         }
-      } catch (error) {
-        console.error("Error fetching issues:", error);
-        setIssues([]);
-      } finally {
-        setLoading(false);
-        hideLoader();
+      );
+      const data = await response.json();
+      if (data.success) {
+        setStats(data.stats);
       }
-    };
+    } catch (error) {
+      console.error("Error fetching dashboard stats:", error);
+    } finally {
+      setLoading(false);
+      setRefreshing(false);
+      hideLoader();
+    }
+  };
 
-    fetchIssues();
+  useEffect(() => {
+    fetchDashboardStats();
   }, [hideLoader]);
 
-  const handleStatusUpdate = async (issueId: string, status: string) => {
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/admin/issue/${issueId}/status`,
-        {
-          method: "PUT",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          },
-          body: JSON.stringify({ status }),
-        }
-      );
-
-      const data = await response.json();
-      if (response.ok) {
-        setIssues((prev) =>
-          prev.map((i) => (i._id === issueId ? { ...i, status } : i))
-        );
-        setOpenDropdown(null);
-      } else {
-        alert(data.message);
-      }
-    } catch (error) {
-      console.error("Error updating issue status:", error);
+  const getStatusIcon = (status: string) => {
+    switch (status) {
+      case "Resolved":
+        return <CheckCircle className="w-5 h-5 text-green-600" />;
+      case "In Progress":
+        return <Clock className="w-5 h-5 text-emerald-700" />;
+      case "Pending":
+        return <AlertCircle className="w-5 h-5 text-yellow-600" />;
+      case "Rejected":
+        return <XCircle className="w-5 h-5 text-red-600" />;
+      default:
+        return null;
     }
   };
-
-  const handleDeleteIssue = async (issueId: string) => {
-    if (!window.confirm("Are you sure you want to delete this issue?")) return;
-    try {
-      const response = await fetch(
-        `${import.meta.env.VITE_BACKEND_URL}/api/v1/issue/admin/${issueId}`,
-        {
-          method: "DELETE",
-          headers: {
-            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
-          },
-        }
-      );
-
-      const data = await response.json();
-      if (response.ok) {
-        setIssues((prev) => prev.filter((i) => i._id !== issueId));
-      } else {
-        alert(data.message);
-      }
-    } catch (error) {
-      console.error("Error deleting issue:", error);
-    }
-  };
-
-  const sortedIssues = [...issues];
-
-  const filteredIssues = sortedIssues.filter((issue) => {
-    const searchMatch =
-      issue.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      issue.description.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      issue.location.address.toLowerCase().includes(searchQuery.toLowerCase());
-    const statusMatch =
-      statusFilters.length === 0 || statusFilters.includes(issue.status);
-    return searchMatch && statusMatch;
-  });
 
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Resolved":
-        return "badge-active";
+        return "bg-green-100 text-green-800";
       case "In Progress":
-        return "badge-info";
-      case "Rejected":
-        return "badge-error";
+        return "bg-emerald-100 text-emerald-800";
       case "Pending":
-        return "badge-pending";
+        return "bg-yellow-100 text-yellow-800";
+      case "Rejected":
+        return "bg-red-100 text-red-800";
       default:
-        return "bg-[var(--bg-subtle)] text-[var(--text-muted)]";
+        return "bg-gray-100 text-gray-800";
     }
   };
 
   if (loading) {
+    return <AdminLoader message="Loading dashboard..." fullScreen />;
+  }
+
+  if (!stats) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen bg-white">
-        <Player
-          autoplay
-          loop
-          animationData={starloader}
-          style={{ height: "200px", width: "200px" }}
-        />
-        <p className="text-muted-foreground mt-4">Fetching issues...</p>
+      <div className="flex justify-center items-center h-screen">
+        <p className="text-muted-foreground">Failed to load dashboard</p>
       </div>
     );
   }
@@ -179,285 +113,273 @@ const AdminHome = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      transition={{ duration: 0.6 }}
-      className="h-full"
+      transition={{ duration: 0.5 }}
+      className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-50 py-8"
     >
-      <div className="h-full">
-        <div className="container mx-auto py-4 space-y-8 pb-12">
-          {/* Welcome Section with Profile Link */}
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-3xl font-bold text-[var(--text-primary)] ">
-                Admin Dashboard
-              </h1>
-              <p className="text-muted-foreground mt-2">
-                Manage and resolve community issues
-              </p>
-            </div>
+      <div className="container mx-auto px-4 space-y-8">
+        {/* Header Section */}
+        <motion.div
+          initial={{ opacity: 0, y: -20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="flex items-center justify-between mb-8"
+        >
+          <div>
+            <h1 className="text-4xl font-bold bg-gradient-to-r from-emerald-700 to-green-600 bg-clip-text text-transparent">
+              Admin Dashboard
+            </h1>
+            <p className="text-gray-600 mt-2">
+              Manage and monitor community civic issues
+            </p>
+          </div>
+          <div className="flex gap-3">
+            <Button
+              onClick={fetchDashboardStats}
+              disabled={refreshing}
+              variant="outline"
+              className="gap-2"
+            >
+              <RefreshCw
+                className={`w-4 h-4 ${refreshing ? "animate-spin" : ""}`}
+              />
+              Refresh
+            </Button>
             <Link to="/admin/profile">
-              <Button
-                variant="outline"
-                className="flex items-center space-x-2 shadow-sm text-slate-500 "
-              >
-                <User className="h-4 w-4 text-purple-700" />
-                <span>My Profile</span>
+              <Button className="bg-gradient-to-r from-emerald-700 to-green-600 hover:from-emerald-800 hover:to-green-700 text-white">
+                My Profile
               </Button>
             </Link>
           </div>
+        </motion.div>
 
-          {/* Statistics Overview */}
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 ">
-            <div className="p-6 rounded-lg border shadow-lg bg-card  hover:scale-[1.02] transition-transform hover:shadow-xl transition-shadow duration-300  ">
-              <div className="text-2xl font-bold text-foreground  ">
-                {issues.length}
+        {/* Main Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+          {/* Total Issues Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Total Issues</p>
+                <p className="text-3xl font-bold text-gray-900 mt-2">
+                  {stats.totalIssues}
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground">Total Issues</p>
-            </div>
-            <div className="p-6 rounded-lg border shadow-lg bg-card hover:scale-[1.02] transition-transform hover:shadow-xl transition-shadow duration-300 ">
-              <div className="text-2xl font-bold text-[var(--success-text)]">
-                {issues.filter((issue) => issue.status === "Resolved").length}
+              <div className="bg-emerald-100 p-3 rounded-lg">
+                <BarChart3 className="w-8 h-8 text-emerald-700" />
               </div>
-              <p className="text-sm text-muted-foreground">Resolved Issues</p>
             </div>
-            <div className="p-6 rounded-lg border shadow-lg bg-card hover:scale-[1.02] transition-transform hover:shadow-xl transition-shadow duration-300 ">
-              <div className="text-2xl font-bold text-[var(--info-text)]">
-                {
-                  issues.filter((issue) => issue.status === "In Progress")
-                    .length
-                }
+          </motion.div>
+
+          {/* Resolved Issues Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">
+                  Resolved Issues
+                </p>
+                <p className="text-3xl font-bold text-green-600 mt-2">
+                  {stats.resolvedIssues}
+                </p>
               </div>
-              <p className="text-sm text-muted-foreground">
-                Issues In Progress
-              </p>
-            </div>
-            <div className="p-6 rounded-lg border shadow-lg bg-card hover:scale-[1.02] transition-transform hover:shadow-xl transition-shadow duration-300 ">
-              <div className="text-2xl font-bold text-[var(--warning-text)]">
-                {issues.filter((issue) => issue.status === "Pending").length}
+              <div className="bg-green-100 p-3 rounded-lg">
+                <CheckCircle className="w-8 h-8 text-green-600" />
               </div>
-              <p className="text-sm text-muted-foreground">Pending</p>
             </div>
-          </div>
+          </motion.div>
 
-          {/* Search and Filters */}
-          <div className="flex flex-col md:flex-row items-center justify-between gap-4 ">
-            <div className="relative w-full md:w-80 shadow-sm rounded">
-              <Search className="absolute  left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
-              <Input
-                type="text"
-                placeholder="Search issues..."
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                className="pl-10 bg-white"
-              />
+          {/* In Progress Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">
+                  In Progress
+                </p>
+                <p className="text-3xl font-bold text-emerald-700 mt-2">
+                  {stats.inProgressIssues}
+                </p>
+              </div>
+              <div className="bg-emerald-100 p-3 rounded-lg">
+                <Clock className="w-8 h-8 text-emerald-700" />
+              </div>
             </div>
+          </motion.div>
 
-            <div className="flex items-center space-x-2">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    variant="outline"
-                    className="gap-2 shadow-sm text-slate-600"
-                  >
-                    Status <ChevronsUpDown className="h-4 w-4 text-gray-500 " />
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-[200px]">
-                  <DropdownMenuCheckboxItem
-                    checked={statusFilters.includes("Rejected")}
-                    onCheckedChange={(checked) =>
-                      setStatusFilters((prev) =>
-                        checked
-                          ? [...prev, "Rejected"]
-                          : prev.filter((s) => s !== "Rejected")
-                      )
-                    }
-                  >
-                    Rejected
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={statusFilters.includes("In Progress")}
-                    onCheckedChange={(checked) =>
-                      setStatusFilters((prev) =>
-                        checked
-                          ? [...prev, "In Progress"]
-                          : prev.filter((s) => s !== "In Progress")
-                      )
-                    }
-                  >
-                    In Progress
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={statusFilters.includes("Resolved")}
-                    onCheckedChange={(checked) =>
-                      setStatusFilters((prev) =>
-                        checked
-                          ? [...prev, "Resolved"]
-                          : prev.filter((s) => s !== "Resolved")
-                      )
-                    }
-                  >
-                    Resolved
-                  </DropdownMenuCheckboxItem>
-                  <DropdownMenuCheckboxItem
-                    checked={statusFilters.includes("Pending")}
-                    onCheckedChange={(checked) =>
-                      setStatusFilters((prev) =>
-                        checked
-                          ? [...prev, "Pending"]
-                          : prev.filter((s) => s !== "Pending")
-                      )
-                    }
-                  >
-                    Pending
-                  </DropdownMenuCheckboxItem>
-                </DropdownMenuContent>
-              </DropdownMenu>
+          {/* Resolution Rate Card */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.4 }}
+            className="bg-white rounded-xl shadow-lg p-6 hover:shadow-xl transition-shadow"
+          >
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-gray-600 text-sm font-medium">
+                  Resolution Rate
+                </p>
+                <p className="text-3xl font-bold text-green-600 mt-2">
+                  {stats.resolutionRate}%
+                </p>
+              </div>
+              <div className="bg-green-100 p-3 rounded-lg">
+                <TrendingUp className="w-8 h-8 text-green-600" />
+              </div>
             </div>
-          </div>
+          </motion.div>
+        </div>
 
-          {/* Issues Cards Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredIssues.map((issue) => (
-              <motion.div
-                key={issue._id}
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="bg-white rounded-lg border shadow-md hover:shadow-xl transition-shadow duration-300 overflow-hidden flex flex-col"
-              >
-                {/* Image Section */}
-                {issue.image && (
-                  <div className="h-40 bg-gray-200 overflow-hidden">
-                    <img
-                      src={issue.image.startsWith("http") ? issue.image : `${import.meta.env.VITE_BACKEND_URL}${issue.image}`}
-                      alt={issue.title}
-                      className="w-full h-full object-cover"
-                    />
+        {/* Secondary Stats Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {/* Pending Issues */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.5 }}
+            className="bg-white rounded-xl shadow-lg p-6"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-yellow-100 p-3 rounded-lg">
+                <AlertCircle className="w-8 h-8 text-yellow-600" />
+              </div>
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Pending</p>
+                <p className="text-2xl font-bold text-yellow-600">
+                  {stats.pendingIssues}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Rejected Issues */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="bg-white rounded-xl shadow-lg p-6"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-red-100 p-3 rounded-lg">
+                <XCircle className="w-8 h-8 text-red-600" />
+              </div>
+              <div>
+                <p className="text-gray-600 text-sm font-medium">Rejected</p>
+                <p className="text-2xl font-bold text-red-600">
+                  {stats.rejectedIssues}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+
+          {/* Handled by Me */}
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.7 }}
+            className="bg-white rounded-xl shadow-lg p-6"
+          >
+            <div className="flex items-center gap-4">
+              <div className="bg-purple-100 p-3 rounded-lg">
+                <Users className="w-8 h-8 text-purple-600" />
+              </div>
+              <div>
+                <p className="text-gray-600 text-sm font-medium">
+                  Handled by You
+                </p>
+                <p className="text-2xl font-bold text-purple-600">
+                  {stats.handledByAdmin}
+                </p>
+              </div>
+            </div>
+          </motion.div>
+        </div>
+
+        {/* Content Section */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Issues by Type */}
+          <motion.div
+            initial={{ opacity: 0, x: -20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.8 }}
+            className="lg:col-span-1 bg-white rounded-xl shadow-lg p-6"
+          >
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Issues by Type
+            </h2>
+            <div className="space-y-3">
+              {stats.issuesByType.length > 0 ? (
+                stats.issuesByType.map((type) => (
+                  <div key={type._id} className="flex items-center justify-between">
+                    <div className="flex items-center gap-3">
+                      <div className="w-2 h-2 rounded-full bg-gradient-to-r from-emerald-700 to-green-600"></div>
+                      <span className="text-gray-700 font-medium">{type._id}</span>
+                    </div>
+                    <span className="bg-gray-100 px-3 py-1 rounded-full text-sm font-semibold text-gray-800">
+                      {type.count}
+                    </span>
                   </div>
-                )}
+                ))
+              ) : (
+                <p className="text-gray-500 text-center py-4">No issues yet</p>
+              )}
+            </div>
+          </motion.div>
 
-                {/* Card Content */}
-                <div className="p-4 flex flex-col flex-grow">
-                  {/* Status Badge */}
-                  <div className="mb-3">
-                    <Badge className={getStatusColor(issue.status)}>
-                      {issue.status}
-                    </Badge>
-                  </div>
-
-                  {/* Title */}
-                  <h3 className="font-semibold text-lg text-gray-800 mb-2 line-clamp-2">
-                    {issue.title}
-                  </h3>
-
-                  {/* Description */}
-                  <p className="text-sm text-gray-600 mb-3 line-clamp-2">
-                    {issue.description}
-                  </p>
-
-                  {/* Issue Type */}
-                  <div className="text-xs text-gray-500 mb-2">
-                    <span className="font-semibold">Type:</span> {issue.type}
-                  </div>
-
-                  {/* Location */}
-                  <div className="text-xs text-gray-500 mb-3">
-                    <span className="font-semibold">Location:</span> {issue.location.address}
-                  </div>
-
-                  {/* Reported By - Show all reporters or count */}
-                  <div className="text-xs text-gray-500 mb-4">
-                    <span className="font-semibold">Reported by:</span>
-                    {issue.reporterCount && issue.reporterCount > 1 ? (
-                      <span className="ml-1">
-                        👥 {issue.reporterCount} people reported this
-                        {issue.reporters && issue.reporters.length > 0 && (
-                          <div className="mt-1 ml-4 text-xs space-y-1">
-                            {issue.reporters.map((reporter, idx) => (
-                              <div key={reporter._id || idx} className="text-gray-600">
-                                • {reporter.fullName}
-                              </div>
-                            ))}
-                          </div>
-                        )}
+          {/* Recent Issues */}
+          <motion.div
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ delay: 0.9 }}
+            className="lg:col-span-2 bg-white rounded-xl shadow-lg p-6"
+          >
+            <h2 className="text-xl font-bold text-gray-900 mb-4">
+              Recent Issues
+            </h2>
+            <div className="space-y-3 max-h-96 overflow-y-auto">
+              {stats.recentIssues.length > 0 ? (
+                stats.recentIssues.map((issue) => (
+                  <div
+                    key={issue._id}
+                    className="flex items-center justify-between p-3 bg-gray-50 rounded-lg hover:bg-gray-100 transition-colors"
+                  >
+                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                      <div>{getStatusIcon(issue.status)}</div>
+                      <div className="flex-1 min-w-0">
+                        <p className="font-medium text-gray-900 truncate">
+                          {issue.title}
+                        </p>
+                        <p className="text-xs text-gray-500 mt-1">
+                          {new Date(issue.createdAt).toLocaleDateString()}
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-2 ml-2">
+                      <span
+                        className={`px-2 py-1 rounded text-xs font-medium ${getStatusColor(
+                          issue.status
+                        )}`}
+                      >
+                        {issue.status}
                       </span>
-                    ) : (
-                      <span className="ml-1">{issue.reportedBy}</span>
-                    )}
+                    </div>
                   </div>
-
-                  {/* Actions */}
-                  <div className="flex gap-2 mt-auto">
-                    <DropdownMenu 
-                      open={openDropdown === issue._id}
-                      onOpenChange={(isOpen) => 
-                        setOpenDropdown(isOpen ? issue._id : null)
-                      }
-                    >
-                      <DropdownMenuTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex-1 text-[var(--info-text)]"
-                        >
-                          <Edit className="h-3 w-3 mr-1" />
-                          Update Status
-                        </Button>
-                      </DropdownMenuTrigger>
-                      <DropdownMenuContent align="end">
-                        <button
-                          onClick={() =>
-                            handleStatusUpdate(issue._id, "Resolved")
-                          }
-                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                        >
-                          Resolved
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleStatusUpdate(issue._id, "In Progress")
-                          }
-                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                        >
-                          In Progress
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleStatusUpdate(issue._id, "Rejected")
-                          }
-                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                        >
-                          Rejected
-                        </button>
-                        <button
-                          onClick={() =>
-                            handleStatusUpdate(issue._id, "Pending")
-                          }
-                          className="block w-full text-left px-4 py-2 hover:bg-gray-100 text-sm"
-                        >
-                          Pending
-                        </button>
-                      </DropdownMenuContent>
-                    </DropdownMenu>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="text-[var(--error-text)]"
-                      onClick={() => handleDeleteIssue(issue._id)}
-                    >
-                      <Trash2 className="h-3 w-3" />
-                    </Button>
-                  </div>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Empty State */}
-          {filteredIssues.length === 0 && (
-            <div className="text-center py-12">
-              <p className="text-gray-500 text-lg">No issues found.</p>
+                ))
+              ) : (
+                <p className="text-gray-500 text-center py-4">No recent issues</p>
+              )}
             </div>
-          )}
+          </motion.div>
         </div>
       </div>
     </motion.div>

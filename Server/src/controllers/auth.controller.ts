@@ -158,9 +158,9 @@ export const verifyOtp = async (
       responseUser.adminAccessCode = profile.adminAccessCode;
       responseUser.email = profile.email;
     } else if (role === "department") {
-      responseUser.department = profile.department;
       responseUser.designation = profile.designation;
       responseUser.employeeId = profile.employeeId;
+      responseUser.place = profile.place;
     } else if (role === "citizen") {
       responseUser.email = profile.email;
     }

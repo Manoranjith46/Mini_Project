@@ -211,3 +211,77 @@ export const deleteIssueByAdmin = async (
     res.status(500).json({ message: "Internal Server Error" });
   }
 };
+
+export const getDashboardStats = async (
+  req: AuthRequest,
+  res: Response
+): Promise<void> => {
+  try {
+    const adminId = req.adminId;
+
+    // Get all issues with counts by status
+    const totalIssues = await IssueModel.countDocuments();
+    const resolvedIssues = await IssueModel.countDocuments({
+      status: "Resolved",
+    });
+    const inProgressIssues = await IssueModel.countDocuments({
+      status: "In Progress",
+    });
+    const pendingIssues = await IssueModel.countDocuments({
+      status: "Pending",
+    });
+    const rejectedIssues = await IssueModel.countDocuments({
+      status: "Rejected",
+    });
+
+    // Get issues handled by current admin
+    const handledByAdmin = await IssueStatusHistoryModel.distinct(
+      "issueID",
+      { handledBy: new mongoose.Types.ObjectId(adminId!) }
+    );
+    const handledCount = handledByAdmin.length;
+
+    // Get issue breakdown by type
+    const issuesByType = await IssueModel.aggregate([
+      {
+        $group: {
+          _id: "$type",
+          count: { $sum: 1 },
+        },
+      },
+      {
+        $sort: { count: -1 },
+      },
+    ]);
+
+    // Get issue resolution rate
+    const resolutionRate =
+      totalIssues > 0
+        ? Math.round((resolvedIssues / totalIssues) * 100)
+        : 0;
+
+    // Get recent issues (last 5)
+    const recentIssues = await IssueModel.find()
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .select("title status type createdAt");
+
+    res.status(200).json({
+      success: true,
+      stats: {
+        totalIssues,
+        resolvedIssues,
+        inProgressIssues,
+        pendingIssues,
+        rejectedIssues,
+        handledByAdmin: handledCount,
+        resolutionRate,
+        issuesByType,
+        recentIssues,
+      },
+    });
+  } catch (error) {
+    console.error("Error fetching dashboard stats:", error);
+    res.status(500).json({ success: false, message: "Server Error" });
+  }
+};
