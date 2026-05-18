@@ -32,7 +32,6 @@ import { toast } from "sonner";
 
 import Player from "lottie-react";
 import emptyAnimation from "../../assets/animations/box.json";
-import HeaderAfterAuth from "../components/HeaderAfterAuth";
 
 interface Issues {
   _id: string;
@@ -135,15 +134,15 @@ const AdminProfile = () => {
   const getStatusColor = (status: string) => {
     switch (status) {
       case "Resolved":
-        return "bg-green-100 text-green-800";
+        return "badge-active";
       case "In Progress":
-        return "bg-blue-100 text-blue-800";
+        return "badge-info";
       case "Pending":
-        return "bg-yellow-100 text-yellow-800";
+        return "badge-pending";
       case "Rejected":
-        return "bg-red-100 text-red-800";
+        return "badge-error";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-[var(--bg-subtle)] text-[var(--text-muted)]";
     }
   };
   if (loadingMyIssues) {
@@ -155,11 +154,8 @@ const AdminProfile = () => {
   }
 
   return (
-    <div className="min-h-screen bg-[#f3f6f8]">
-      {/* Navbar */}
-      <HeaderAfterAuth />
-
-      <div className="pt-20 container mx-auto my-9 max-w-4xl space-y-6 px-4">
+    <div className="h-full pb-12">
+      <div className="container mx-auto max-w-4xl space-y-6">
         {/* Profile Header */}
         <Card
           className="bg-white/80 
@@ -176,7 +172,7 @@ const AdminProfile = () => {
               <div className="flex items-center space-x-4">
                 <Avatar className="h-20 w-20 ">
                   <AvatarImage src="/placeholder.svg" />
-                  <AvatarFallback className="text-lg bg-[#bedbff] ">
+                  <AvatarFallback className="text-lg bg-[var(--bg-primary-soft)] text-[var(--text-primary)]">
                     {profile.fullName
                       .split(" ")
                       .map((n) => n[0])
@@ -188,7 +184,7 @@ const AdminProfile = () => {
                     <CardTitle className="text-2xl text-slate-600">
                       Administrator Profile
                     </CardTitle>
-                    <Shield className="h-5 w-5 text-blue-600" />
+                    <Shield className="h-5 w-5 text-[var(--text-primary)]" />
                   </div>
                   <CardDescription>
                     Manage your profile and view your resolved issues
@@ -202,7 +198,7 @@ const AdminProfile = () => {
                   isEditing ? handleSaveProfile : () => setIsEditing(true)
                 }
               >
-                <Edit className="h-4 w-4  text-purple-700" />
+                <Edit className="h-4 w-4 text-[var(--text-primary)]" />
                 <div className="hidden sm:block">
                   {isEditing ? "Save Changes" : "Edit Profile"}
                 </div>
@@ -214,7 +210,7 @@ const AdminProfile = () => {
               <div className="space-y-2">
                 <Label htmlFor="name">Full Name</Label>
                 <div className="flex items-center space-x-2">
-                  <User className="h-4 w-4 text-blue-600 hover:text-blue-800  transition duration-300" />
+                  <User className="h-4 w-4 text-[var(--text-primary)] hover:text-[var(--text-primary)] transition duration-300" />
                   {isEditing ? (
                     <Input
                       id="name"
@@ -234,7 +230,7 @@ const AdminProfile = () => {
               <div className="space-y-2">
                 <Label htmlFor="email">Email</Label>
                 <div className="flex items-center space-x-2">
-                  <Mail className="h-4 w-4 text-blue-600 hover:text-blue-800  transition duration-300" />
+                  <Mail className="h-4 w-4 text-[var(--text-primary)] hover:text-[var(--text-primary)] transition duration-300" />
                   {isEditing ? (
                     <Input
                       id="email"
@@ -255,7 +251,7 @@ const AdminProfile = () => {
               <div className="space-y-2">
                 <Label htmlFor="phonenumber">Phone Number</Label>
                 <div className="flex items-center space-x-2">
-                  <Phone className="h-4 w-4 text-blue-600 hover:text-blue-800  transition duration-300" />
+                  <Phone className="h-4 w-4 text-[var(--text-primary)] hover:text-[var(--text-primary)] transition duration-300" />
                   {isEditing ? (
                     <Input
                       id="phonenumber"
@@ -275,7 +271,7 @@ const AdminProfile = () => {
               <div className="space-y-2">
                 <Label htmlFor="department">Department</Label>
                 <div className="flex items-center space-x-2">
-                  <Shield className="h-4 w-4 text-yellow-500 hover:text-yellow-700  transition duration-300" />
+                  <Shield className="h-4 w-4 text-[var(--text-primary)] hover:text-[var(--text-primary)] transition duration-300" />
                   {isEditing ? (
                     <Input
                       id="department"
@@ -327,7 +323,7 @@ const AdminProfile = () => {
   "
           >
             <CardContent className="p-6">
-              <div className="text-2xl font-bold text-green-600">
+              <div className="text-2xl font-bold text-[var(--success-text)]">
                 {
                   respondedIssues.filter((issue) => issue.status === "Resolved")
                     .length
@@ -350,7 +346,7 @@ const AdminProfile = () => {
   "
           >
             <CardContent className="p-6">
-              <div className="text-2xl font-bold text-blue-600">
+              <div className="text-2xl font-bold text-[var(--info-text)]">
                 {
                   respondedIssues.filter(
                     (issue) => issue.status === "In Progress"
@@ -415,7 +411,7 @@ const AdminProfile = () => {
         >
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
-              <CheckCircle className="h-5 w-5 text-green-500 hover:text-green-700  transition duration-300" />
+              <CheckCircle className="h-5 w-5 text-[var(--success-text)] transition duration-300" />
               <span>Issues I've Handled</span>
             </CardTitle>
             <CardDescription>
@@ -442,7 +438,7 @@ const AdminProfile = () => {
                 respondedIssues.map((issue) => (
                   <div
                     key={issue._id}
-                    className="border rounded-lg p-4 space-y-3 shadow-sm bg-blue-50 "
+                    className="border rounded-lg p-4 space-y-3 shadow-sm bg-[var(--bg-page)]"
                   >
                     <div className="flex items-start justify-between">
                       <div className="space-y-1">
@@ -464,7 +460,7 @@ const AdminProfile = () => {
                       </div>
                     </div>
 
-                    <div className="bg-blue-50 border-l-4 border-blue-400 p-3 rounded">
+                    <div className="bg-[var(--bg-primary-soft)] border-l-4 border-[var(--border-primary)] p-3 rounded">
                       <p className="text-sm">
                         <strong>Your Response:</strong> {issue.adminResponse}
                       </p>
@@ -474,11 +470,11 @@ const AdminProfile = () => {
 
                     <div className="grid grid-cols-1  gap-4 text-sm">
                       <div className="flex items-center space-x-2">
-                        <MapPin className="h-4 w-4 text-blue-600" />
+                        <MapPin className="h-4 w-4 text-[var(--text-primary)]" />
                         <span>{issue.location?.address}</span>
                       </div>
                       <div className="flex items-center space-x-2">
-                        <Calendar className="h-4 w-4 text-pink-500" />
+                        <Calendar className="h-4 w-4 text-[var(--warning-text)]" />
                         <span>
                           Reported:{" "}
                           {issue.reportDate
@@ -488,12 +484,12 @@ const AdminProfile = () => {
                       </div>
                       {issue.resolvedDate && (
                         <div className="flex items-center space-x-2">
-                          <CheckCircle className="h-4 w-4 text-green-600" />
+                          <CheckCircle className="h-4 w-4 text-[var(--success-text)]" />
                           <span>Resolved: {issue.resolvedDate}</span>
                         </div>
                       )}
                       <div className="flex items-center space-x-2">
-                        <FileText className="h-4 w-4 text-purple-600" />
+                        <FileText className="h-4 w-4 text-[var(--secondary-text)]" />
                         <span>Category: {issue.category}</span>
                       </div>
                     </div>

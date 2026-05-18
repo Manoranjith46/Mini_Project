@@ -1,9 +1,9 @@
 import { Request, Response } from "express";
 import jwt from "jsonwebtoken";
-import { UserModel } from "../../models/user.model";
-import { CitizenModel } from "../../models/citizen.model";
-import { AdminModel } from "../../models/admin.model";
-import { DepartmentModel } from "../../models/department.model";
+import { UserModel } from "../models/user.model";
+import { CitizenModel } from "../models/citizen.model";
+import { AdminModel } from "../models/admin.model";
+import { DepartmentModel } from "../models/department.model";
 
 // Demo OTP - always accepted in development
 const DEMO_OTP = "123456";
@@ -21,16 +21,25 @@ export const sendOtp = async (
     }
 
     // Look up the user by phonenumber OR employeeId
-    const user = await UserModel.findOne({
+    let user = await UserModel.findOne({
       $or: [
         { phonenumber: credential },
         { employeeId: credential.toUpperCase() }
       ]
     });
 
+    // If user does not exist, create a new citizen profile and corresponding user entry
     if (!user) {
-      res.status(404).json({ success: false, message: "Credential not registered" });
-      return;
+      const newCitizen = await CitizenModel.create({
+        phonenumber: credential,
+        fullName: "Anonymous",
+        email: undefined,
+      });
+      user = await UserModel.create({
+        phonenumber: credential,
+        role: "citizen",
+        roleRefId: newCitizen._id,
+      });
     }
 
     // In demo mode, just store a dummy OTP
@@ -64,16 +73,28 @@ export const verifyOtp = async (
       return;
     }
 
-    const user = await UserModel.findOne({
+    let user = await UserModel.findOne({
       $or: [
         { phonenumber: credential },
         { employeeId: credential.toUpperCase() }
       ]
     });
 
+    // If user does not exist, create a new citizen account and associated user record
     if (!user) {
-      res.status(404).json({ success: false, message: "User not found" });
-      return;
+      // Create a basic citizen profile (you may extend with additional fields as needed)
+      const newCitizen = await CitizenModel.create({
+        phonenumber: credential,
+        fullName: "Anonymous",
+        email: undefined,
+      });
+
+      // Create the corresponding user entry linking to the citizen profile
+      user = await UserModel.create({
+        phonenumber: credential,
+        role: "citizen",
+        roleRefId: newCitizen._id,
+      });
     }
 
     // Demo mode: accept DEMO_OTP always

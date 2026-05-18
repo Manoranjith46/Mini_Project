@@ -240,6 +240,100 @@
   }
   body {
     @apply text-foreground;
+    background-color: var(--bg-page, #f0fdf4);
+    color: var(--text-base, #0f172a);
+  }
+
+  :root {
+    --bg-page: #f0fdf4;
+    --bg-surface: #ffffff;
+    --bg-subtle: #f1f5f9;
+    --bg-primary: #16a34a;
+    --bg-primary-soft: #dcfce7;
+    --bg-secondary: #0d9488;
+    --bg-accent: #d97706;
+    --text-base: #0f172a;
+    --text-muted: #334155;
+    --text-hint: #64748b;
+    --text-primary: #15803d;
+    --border-default: #e2e8f0;
+    --border-primary: #86efac;
+    --border-active: #16a34a;
+
+    --success-bg: #f0fdf4;
+    --success-border: #86efac;
+    --success-text: #16a34a;
+
+    --warning-bg: #fffbeb;
+    --warning-border: #fcd34d;
+    --warning-text: #d97706;
+
+    --error-bg: #fef2f2;
+    --error-border: #fca5a5;
+    --error-text: #dc2626;
+
+    --info-bg: #eff6ff;
+    --info-border: #bfdbfe;
+    --info-text: #2563eb;
+  }
+}
+
+@layer components {
+  .btn-primary {
+    background-color: #16a34a !important;
+    color: #ffffff !important;
+    border: none;
+  }
+  .btn-primary:hover {
+    background-color: #15803d !important;
+  }
+
+  .btn-secondary {
+    background-color: #dcfce7 !important;
+    color: #15803d !important;
+    border: none;
+  }
+  .btn-secondary:hover {
+    background-color: #bbf7d0 !important;
+  }
+
+  .btn-ghost {
+    background-color: transparent !important;
+    border: 1px solid #16a34a !important;
+    color: #16a34a !important;
+  }
+  .btn-ghost:hover {
+    background-color: #f0fdf4 !important;
+  }
+
+  .btn-destructive {
+    background-color: #dc2626 !important;
+    color: #ffffff !important;
+    border: none;
+  }
+  .btn-destructive:hover {
+    background-color: #b91c1c !important;
+  }
+
+  .badge-active {
+    background-color: #dcfce7 !important;
+    color: #15803d !important;
+    border-color: #86efac !important;
+  }
+  .badge-pending {
+    background-color: #fef3c7 !important;
+    color: #92400e !important;
+    border-color: #fcd34d !important;
+  }
+  .badge-error {
+    background-color: #fef2f2 !important;
+    color: #991b1b !important;
+    border-color: #fca5a5 !important;
+  }
+  .badge-info {
+    background-color: #eff6ff !important;
+    color: #1e40af !important;
+    border-color: #bfdbfe !important;
   }
 }
 

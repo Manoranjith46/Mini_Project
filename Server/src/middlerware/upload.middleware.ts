@@ -1,18 +1,12 @@
 import multer from "multer";
-import { GridFsStorage } from "multer-gridfs-storage";
 import "dotenv/config";
 
-const DATABASE_URL = process.env.DATABASE_URL || "";
+// Use memory storage - we'll handle GridFS upload in the controller
+const storage = multer.memoryStorage();
 
-const storage = new GridFsStorage({
-  url: DATABASE_URL,
-  options: { useNewUrlParser: true, useUnifiedTopology: true },
-  file: (_req: any, file: any) => {
-    return {
-      bucketName: "uploads",
-      filename: `${Date.now()}-${file.originalname}`,
-    };
+export const upload = multer({
+  storage,
+  limits: {
+    fileSize: 50 * 1024 * 1024, // 50MB limit
   },
 });
-
-export const upload = multer({ storage });

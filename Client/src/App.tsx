@@ -14,6 +14,11 @@ import CitizenProfile from "./pages/citizen/CitizenProfile";
 import ReportIssue from "./pages/citizen/ReportIssue";
 import AdminHome from "./pages/Admin/AdminHome";
 import AdminProfile from "./pages/Admin/AdminProfile";
+import AdminLayout from "./pages/Admin/AdminLayout";
+import AdminReports from "./pages/Admin/AdminReports";
+import AdminManagers from "./pages/Admin/AdminManagers";
+import AdminNoticeBoard from "./pages/Admin/AdminNoticeBoard";
+import AdminAnalytics from "./pages/Admin/AdminAnalytics";
 import NotFound from "./pages/NotFound";
 import SignIn from "./pages/Auth/SignIn";
 import SignUp from "./pages/Auth/SignUp";
@@ -92,21 +97,18 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute requiredRole="admin">
               <MotionWrapper>
-                <AdminHome />
+                <AdminLayout />
               </MotionWrapper>
             </ProtectedRoute>
           }
-        />
-        <Route
-          path="/admin/profile"
-          element={
-            <ProtectedRoute requiredRole="admin">
-              <MotionWrapper>
-                <AdminProfile />
-              </MotionWrapper>
-            </ProtectedRoute>
-          }
-        />
+        >
+          <Route index element={<AdminHome />} />
+          <Route path="reports" element={<AdminReports />} />
+          <Route path="managers" element={<AdminManagers />} />
+          <Route path="notice-board" element={<AdminNoticeBoard />} />
+          <Route path="analytics" element={<AdminAnalytics />} />
+          <Route path="profile" element={<AdminProfile />} />
+        </Route>
         <Route path="*" element={<MotionWrapper><NotFound /></MotionWrapper>} />
       </Routes>
     </AnimatePresence>

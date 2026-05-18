@@ -10,7 +10,7 @@ import {
   CardTitle,
 } from "../components/ui/card";
 import { RadioGroup, RadioGroupItem } from "../components/ui/radio-group";
-import { ArrowLeft, MapPin, Upload, Send, Search } from "lucide-react";
+import { ArrowLeft, MapPin, Upload, Send, Search, AlertCircle, Check, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import MapComponent from "../components/MapBox";
 import { toast } from "sonner";
@@ -41,6 +41,8 @@ const ReportIssue = ({ onBack }: { onBack?: () => void }) => {
   const [loading, setLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
+  const [duplicateWarning, setDuplicateWarning] = useState<any>(null);
+  const [pendingFormData, setPendingFormData] = useState<any>(null);
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -100,7 +102,7 @@ const ReportIssue = ({ onBack }: { onBack?: () => void }) => {
     }
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent, skipDuplicateCheck: boolean = false) => {
     e.preventDefault();
 
     if (
@@ -124,7 +126,106 @@ const ReportIssue = ({ onBack }: { onBack?: () => void }) => {
       data.append("title", formData.title);
       data.append("description", formData.issueDescription);
       data.append("issueType", formData.issueType);
-      data.append("location", JSON.stringify(formData.location)); // ✅ Location as JSON
+      data.append("location", JSON.stringify(formData.location));
+
+      if (selectedFile) {
+        data.append("files", selectedFile);
+      }
+
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/citizen/create-issue`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+          body: data,
+        }
+      );
+
+      const result = await response.json();
+      
+      // Handle duplicate detection response
+      if (response.status === 200 && result.isDuplicate && !skipDuplicateCheck) {
+        console.log("Duplicate issues found:", result.duplicates);
+        setDuplicateWarning(result);
+        setPendingFormData(formData);
+        setLoading(false);
+        return;
+      }
+
+      if (response.ok) {
+        toast.success("Issue reported successfully!");
+        setDuplicateWarning(null);
+        handleBack();
+      } else {
+        toast.error(result.message || "Failed to report issue");
+      }
+    } catch (error) {
+      console.error("Error reporting issue:", error);
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleConfirmDuplicate = async () => {
+    // User confirmed it's the same issue - add them as reporter
+    const token = localStorage.getItem("auth_token");
+    if (!token) {
+      toast.error("You must be logged in");
+      return;
+    }
+
+    try {
+      setLoading(true);
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/issue/add-reporter`,
+        {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          body: JSON.stringify({
+            existingIssueId: duplicateWarning.duplicates[0]._id,
+          }),
+        }
+      );
+
+      const result = await response.json();
+      if (response.ok) {
+        toast.success(`✅ Added your report! ${result.reporterCount} people reported this issue`);
+        setDuplicateWarning(null);
+        handleBack();
+      } else {
+        toast.error(result.message || "Failed to add report");
+      }
+    } catch (error) {
+      console.error("Error adding reporter:", error);
+      toast.error("Something went wrong");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleCreateNewIssue = async () => {
+    // User chose to create a new issue anyway
+    setDuplicateWarning(null);
+    setLoading(true);
+    try {
+      const token = localStorage.getItem("auth_token");
+      if (!token) {
+        toast.error("You must be logged in");
+        return;
+      }
+
+      const data = new FormData();
+      data.append("title", formData.title);
+      data.append("description", formData.issueDescription);
+      data.append("issueType", formData.issueType);
+      data.append("location", JSON.stringify(formData.location));
+      data.append("skipDuplicateCheck", "true");
 
       if (selectedFile) {
         data.append("files", selectedFile);
@@ -381,6 +482,67 @@ const ReportIssue = ({ onBack }: { onBack?: () => void }) => {
             </CardContent>
           </Card>
         </div>
+
+        {/* Duplicate Warning Modal */}
+        {duplicateWarning && (
+          <div className="fixed top-0 left-0 right-0 bottom-0 bg-black/50 z-[9999] flex items-center justify-center p-4">
+            <Card className="w-full max-w-md shadow-xl">
+              <CardHeader className="bg-amber-50 border-b border-amber-200 py-4 flex items-center justify-center">
+                <CardTitle className="flex items-center justify-center gap-2 text-amber-900">
+                  <AlertCircle className="w-5 h-5" />
+                  Similar Issue Found Nearby
+                </CardTitle>
+              </CardHeader>
+              <CardContent className="pt-6 space-y-4">
+                <p className="text-sm text-gray-700">
+                  {duplicateWarning.message}
+                </p>
+
+                {/* Show nearby issues */}
+                <div className="bg-gray-50 rounded-lg p-4 space-y-3 max-h-48 overflow-y-auto">
+                  {duplicateWarning.duplicates.map((issue: any) => (
+                    <div key={issue._id} className="border-l-4 border-blue-400 pl-3 py-2">
+                      <h4 className="font-semibold text-sm text-gray-900">
+                        {issue.title}
+                      </h4>
+                      <p className="text-xs text-gray-600 mt-1">
+                        {issue.description.substring(0, 80)}...
+                      </p>
+                      <div className="flex gap-2 mt-2 text-xs text-gray-500">
+                        <span>📍 {issue.distance}m away</span>
+                        <span>👥 {issue.reporterCount} reports</span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+
+                {/* Action Buttons */}
+                <div className="grid grid-cols-2 gap-3 pt-4">
+                  <Button
+                    onClick={handleConfirmDuplicate}
+                    disabled={loading}
+                    className="bg-green-500 hover:bg-green-600"
+                  >
+                    <Check className="w-4 h-4 mr-2" />
+                    Yes, Same Issue
+                  </Button>
+                  <Button
+                    onClick={handleCreateNewIssue}
+                    disabled={loading}
+                    variant="outline"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    No, Different
+                  </Button>
+                </div>
+
+                <p className="text-xs text-gray-500 text-center">
+                  Choosing "Yes" will add your report to help others see this issue
+                </p>
+              </CardContent>
+            </Card>
+          </div>
+        )}
       </main>
     </div>
   );

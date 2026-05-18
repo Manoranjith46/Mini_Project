@@ -18,6 +18,10 @@ const IssueSchema = new Schema<IIssue & Document>(
       ref: "Citizen",
       required: true,
     },
+    reporters: [{
+      type: Schema.Types.ObjectId,
+      ref: "Citizen",
+    }],
     issueType: {
       type: String,
       enum: [
@@ -33,7 +37,6 @@ const IssueSchema = new Schema<IIssue & Document>(
     },
     title: {
       type: String,
-      unique: true,
       required: true,
       maxlength: 100,
       minlength: 5,
@@ -70,6 +73,9 @@ const IssueSchema = new Schema<IIssue & Document>(
   },
   { timestamps: true }
 );
+
+// Create geospatial index for location-based queries
+IssueSchema.index({ "location.latitude": 1, "location.longitude": 1 });
 
 export const LocationModel = model("Location", locationSchema);
 

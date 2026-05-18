@@ -18,6 +18,20 @@ export const connectDB = async () => {
     // Initialize GridFS bucket after connection
     const bucket = new GridFSBucket(conn.connection.db!, { bucketName: "uploads" });
     setGridFSBucket(bucket);
+    
+    // Drop old unique index on title if it exists (from previous schema)
+    try {
+      const issuesCollection = conn.connection.db!.collection("issues");
+      const indexes = await issuesCollection.listIndexes().toArray();
+      const titleIndex = indexes.find(idx => idx.name === "title_1");
+      if (titleIndex) {
+        await issuesCollection.dropIndex("title_1");
+        console.log("✅ Dropped old unique index on 'title' field");
+      }
+    } catch (indexErr) {
+      console.log("Index cleanup info:", (indexErr as any).message);
+    }
+    
     console.log(`🛰️  MongoDB Connected: ${conn.connection.host}`);
   } catch (err) {
     console.error("DB connection error:", err);
