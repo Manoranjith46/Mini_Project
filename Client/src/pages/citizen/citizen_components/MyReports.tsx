@@ -16,11 +16,26 @@ interface Report {
   status: string;
   createdAt: string;
   image?: string;
+  costAmount?: number;
+}
+
+interface StatusHistory {
+  _id: string;
+  status: string;
+  changedAt: string;
+  changedBy: {
+    fullName: string;
+    role: string;
+  };
+  costAdded: number;
 }
 
 export default function MyReports() {
   const [reports, setReports] = useState<Report[]>([]);
   const [loading, setLoading] = useState(true);
+  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [historyLoading, setHistoryLoading] = useState(false);
+  const [statusHistory, setStatusHistory] = useState<StatusHistory[]>([]);
 
   useEffect(() => {
     const fetchReports = async () => {
@@ -44,6 +59,32 @@ export default function MyReports() {
     fetchReports();
   }, []);
 
+  const handleExpand = async (reportId: string) => {
+    if (expandedId === reportId) {
+      setExpandedId(null);
+      return;
+    }
+    setExpandedId(reportId);
+    setHistoryLoading(true);
+    setStatusHistory([]);
+
+    try {
+      const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/reports/${reportId}`, {
+        headers: {
+          'Authorization': `Bearer ${localStorage.getItem('auth_token')}`
+        }
+      });
+      const data = await response.json();
+      if (data.success && data.data.statusHistory) {
+        setStatusHistory(data.data.statusHistory);
+      }
+    } catch (error) {
+      console.error('Error fetching history:', error);
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
+
   if (loading) return <div className={styles.loading}>Loading your reports...</div>;
 
   return (
@@ -60,7 +101,12 @@ export default function MyReports() {
       ) : (
         <div className={styles.reportsList}>
           {reports.map((report) => (
-            <div key={report._id} className={styles.reportCard}>
+            <div 
+              key={report._id} 
+              className={styles.reportCard} 
+              onClick={() => handleExpand(report._id)}
+              style={{ cursor: "pointer" }}
+            >
               <div className={styles.cardHeader}>
                 <span className={styles.category}>{report.issueType}</span>
                 <span className={`${styles.status} ${styles[report.status.toLowerCase().replace(' ', '-')] || ''}`}>
@@ -86,7 +132,43 @@ export default function MyReports() {
                   </svg>
                   <span>{new Date(report.createdAt).toLocaleDateString()}</span>
                 </div>
+                {report.costAmount !== undefined && report.costAmount > 0 && (
+                  <div className={styles.meta} style={{ color: "#059669", fontWeight: "600" }}>
+                    <svg className={styles.metaIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <path d="M12 2v20M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/>
+                    </svg>
+                    <span>${report.costAmount} Spent</span>
+                  </div>
+                )}
               </div>
+
+              {expandedId === report._id && (
+                <div className="mt-4 pt-4 border-t border-gray-100" style={{ marginTop: "1rem", paddingTop: "1rem", borderTop: "1px solid #f3f4f6" }}>
+                  <h4 style={{ fontSize: "0.875rem", fontWeight: "600", color: "#374151", marginBottom: "0.5rem" }}>Status History</h4>
+                  {historyLoading ? (
+                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>Loading history...</p>
+                  ) : statusHistory.length === 0 ? (
+                    <p style={{ fontSize: "0.875rem", color: "#6b7280" }}>No history available yet.</p>
+                  ) : (
+                    <div style={{ display: "flex", flexDirection: "column", gap: "0.75rem" }}>
+                      {statusHistory.map((history) => (
+                        <div key={history._id} style={{ display: "flex", alignItems: "flex-start", gap: "0.5rem" }}>
+                          <div style={{ marginTop: "0.25rem", width: "0.5rem", height: "0.5rem", borderRadius: "9999px", backgroundColor: "#3b82f6" }} />
+                          <div>
+                            <p style={{ fontSize: "0.875rem", fontWeight: "500", color: "#111827" }}>
+                              {history.status}
+                              {history.costAdded > 0 && <span style={{ color: "#059669", marginLeft: "0.5rem" }}>+${history.costAdded}</span>}
+                            </p>
+                            <p style={{ fontSize: "0.75rem", color: "#6b7280" }}>
+                              {new Date(history.changedAt).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
             </div>
           ))}
         </div>

@@ -162,9 +162,9 @@ export const getDepartmentIssues = async (
       return;
     }
 
-    // Fetch issues for the manager's place/corporation.
+    // Fetch issues assigned to the manager's zone.
     const issues = await IssueModel.find({
-      "location.address": department.place,
+      departmentAssigned: department.place,
     })
       .populate("citizenId", "fullName phonenumber")
       .sort({ createdAt: -1 });

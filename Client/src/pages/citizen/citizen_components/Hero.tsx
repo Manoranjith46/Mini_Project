@@ -2,7 +2,7 @@
 
 import styles from './Hero.module.css';
 
-export default function Hero({ onNavigate }) {
+export default function Hero({ onNavigate }: { onNavigate: any }) {
   return (
     <section className={styles.hero}>
       <div className={styles.container}>

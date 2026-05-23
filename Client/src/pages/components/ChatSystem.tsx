@@ -40,14 +40,14 @@ const mockMessages = {
   ],
 };
 
-export default function ChatSystem({ user }) {
-  const [selectedContact, setSelectedContact] = useState(null);
-  const [messages, setMessages] = useState({});
+export default function ChatSystem({ user }: { user: any }) {
+  const [selectedContact, setSelectedContact] = useState<any>(null);
+  const [messages, setMessages] = useState<Record<number, any[]>>({});
   const [newMessage, setNewMessage] = useState('');
   const [searchQuery, setSearchQuery] = useState('');
-  const messagesEndRef = useRef(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
 
-  const contacts = mockContacts[user?.role] || mockContacts.admin;
+  const contacts = mockContacts[user?.role as keyof typeof mockContacts] || mockContacts.admin;
 
   useEffect(() => {
     setMessages(mockMessages);
@@ -57,7 +57,7 @@ export default function ChatSystem({ user }) {
     messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
   }, [messages, selectedContact]);
 
-  const handleSendMessage = (e) => {
+  const handleSendMessage = (e: any) => {
     e.preventDefault();
     if (!newMessage.trim() || !selectedContact) return;
 
@@ -76,7 +76,7 @@ export default function ChatSystem({ user }) {
     setNewMessage('');
   };
 
-  const filteredContacts = contacts.filter((contact) =>
+  const filteredContacts = contacts.filter((contact: any) =>
     contact.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -113,7 +113,7 @@ export default function ChatSystem({ user }) {
         </div>
 
         <div className={styles.contactsList}>
-          {filteredContacts.map((contact) => (
+          {filteredContacts.map((contact: any) => (
             <button
               key={contact.id}
               className={`${styles.contactItem} ${selectedContact?.id === contact.id ? styles.active : ''}`}

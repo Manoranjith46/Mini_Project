@@ -17,6 +17,7 @@ interface User {
   adminAccessCode?: string;
   designation?: string;
   employeeId?: string;
+  place?: string;
 }
 
 interface AuthContextType {
@@ -45,6 +46,13 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   const [user, setUser] = useState<User | null>(null);
   const [token, setToken] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  const logout = () => {
+    setUser(null);
+    setToken(null);
+    localStorage.removeItem("auth_token");
+    localStorage.removeItem("auth_user");
+  };
 
   const fetchProfile = async () => {
     try {
@@ -81,6 +89,10 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         const updatedUser = { ...parsed, ...result, role };
         setUser(updatedUser);
         localStorage.setItem("auth_user", JSON.stringify(updatedUser));
+      } else if (response.status === 404) {
+        // If profile not found (e.g., after database reset), clear auth data
+        console.warn("Profile not found - clearing authentication data");
+        logout();
       } else {
         console.error("Failed to fetch profile:", result.message);
       }
@@ -92,6 +104,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
   useEffect(() => {
     const storedToken = localStorage.getItem("auth_token");
     const storedUser = localStorage.getItem("auth_user");
+
     if (storedToken && storedUser && storedUser !== "undefined") {
       try {
         setToken(storedToken);
@@ -106,8 +119,9 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         logout();
         setIsLoading(false);
       }
+    } else {
+      setIsLoading(false);
     }
-    setIsLoading(false);
   }, []);
 
   const sendOtp = async (phonenumber: string) => {
@@ -152,6 +166,7 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
         adminAccessCode: result.user.adminAccessCode || "",
         designation: result.user.designation || "",
         employeeId: result.user.employeeId || "",
+        place: result.user.place || "",
       };
 
       setToken(result.token);
@@ -167,13 +182,6 @@ export const AuthProvider: React.FC<AuthProviderProps> = ({ children }) => {
     } finally {
       setIsLoading(false);
     }
-  };
-
-  const logout = () => {
-    setUser(null);
-    setToken(null);
-    localStorage.removeItem("auth_token");
-    localStorage.removeItem("auth_user");
   };
 
   const updateUserProfile = async (updatedData: Partial<User>) => {

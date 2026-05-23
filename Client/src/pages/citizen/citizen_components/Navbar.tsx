@@ -2,7 +2,7 @@
 
 import styles from './Navbar.module.css';
 
-export default function Navbar({ currentView, onNavigate, user, onLogout }) {
+export default function Navbar({ currentView, onNavigate, user, onLogout }: { currentView: any; onNavigate: any; user: any; onLogout: any }) {
   const navItems = [
     { id: 'home', label: 'Home', icon: (
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">

@@ -42,7 +42,7 @@ const ReportIssue = ({ onBack }: { onBack?: () => void }) => {
   const [searchQuery, setSearchQuery] = useState("");
   const [searchLocation, setSearchLocation] = useState<{ lat: number; lng: number } | null>(null);
   const [duplicateWarning, setDuplicateWarning] = useState<any>(null);
-  const [pendingFormData, setPendingFormData] = useState<any>(null);
+  // const [pendingFormData, setPendingFormData] = useState<any>(null); // Unused state
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
@@ -149,7 +149,7 @@ const ReportIssue = ({ onBack }: { onBack?: () => void }) => {
       if (response.status === 200 && result.isDuplicate && !skipDuplicateCheck) {
         console.log("Duplicate issues found:", result.duplicates);
         setDuplicateWarning(result);
-        setPendingFormData(formData);
+        // setPendingFormData(formData); // Unused
         setLoading(false);
         return;
       }

@@ -16,6 +16,8 @@ import { CitizenModel } from "../models/citizen.model";
 import { AdminModel } from "../models/admin.model";
 import { DepartmentModel } from "../models/department.model";
 import { IssueModel } from "../models/issue.model";
+import { WorkerModel } from "../models/worker.model";
+import { IssueStatusHistoryModel } from "../models/issueStatusHistory.model";
 
 async function seed() {
   const DATABASE_URL = process.env.DATABASE_URL;
@@ -37,37 +39,19 @@ async function seed() {
       AdminModel.deleteMany({}),
       DepartmentModel.deleteMany({}),
       IssueModel.deleteMany({}),
+      WorkerModel.deleteMany({}),
+      IssueStatusHistoryModel.deleteMany({}),
     ]);
     console.log("✅ All data cleared\n");
 
     // Create Citizens
     console.log("👥 Creating citizens...");
     const citizens = await CitizenModel.create([
-      {
-        fullName: "John Doe",
-        email: "john@example.com",
-        phonenumber: "8001234567",
-      },
-      {
-        fullName: "Jane Smith",
-        email: "jane@example.com",
-        phonenumber: "8001234568",
-      },
-      {
-        fullName: "Robert Johnson",
-        email: "robert@example.com",
-        phonenumber: "8001234569",
-      },
-      {
-        fullName: "Emily Wilson",
-        email: "emily@example.com",
-        phonenumber: "8001234570",
-      },
-      {
-        fullName: "Michael Brown",
-        email: "michael@example.com",
-        phonenumber: "8001234571",
-      },
+      { fullName: "John Doe", email: "john@example.com", phonenumber: "8001234567" },
+      { fullName: "Jane Smith", email: "jane@example.com", phonenumber: "8001234568" },
+      { fullName: "Robert Johnson", email: "robert@example.com", phonenumber: "8001234569" },
+      { fullName: "Emily Wilson", email: "emily@example.com", phonenumber: "8001234570" },
+      { fullName: "Michael Brown", email: "michael@example.com", phonenumber: "8001234571" },
     ]);
     console.log(`✅ Created ${citizens.length} citizens\n`);
 
@@ -96,46 +80,29 @@ async function seed() {
     // Create Departments
     console.log("🏢 Creating departments...");
     const departments = await DepartmentModel.create([
-      {
-        fullName: "Raj Kumar",
-        phonenumber: "1001234567",
-        designation: "Department Manager",
-        employeeId: "DEPT001",
-        place: "North Zone",
-      },
-      {
-        fullName: "Priya Singh",
-        phonenumber: "1001234568",
-        designation: "Department Manager",
-        employeeId: "DEPT002",
-        place: "South Zone",
-      },
-      {
-        fullName: "Amit Patel",
-        phonenumber: "1001234569",
-        designation: "Department Manager",
-        employeeId: "DEPT003",
-        place: "Central Area",
-      },
-      {
-        fullName: "Neha Desai",
-        phonenumber: "1001234570",
-        designation: "Department Manager",
-        employeeId: "DEPT004",
-        place: "East Zone",
-      },
-      {
-        fullName: "Vikram Reddy",
-        phonenumber: "1001234571",
-        designation: "Department Manager",
-        employeeId: "DEPT005",
-        place: "West Zone",
-      },
+      { fullName: "Raj Kumar", phonenumber: "1001234567", designation: "Department Manager", employeeId: "DEPT001", place: "North Zone" },
+      { fullName: "Priya Singh", phonenumber: "1001234568", designation: "Department Manager", employeeId: "DEPT002", place: "South Zone" },
+      { fullName: "Amit Patel", phonenumber: "1001234569", designation: "Department Manager", employeeId: "DEPT003", place: "Central Area" },
+      { fullName: "Neha Desai", phonenumber: "1001234570", designation: "Department Manager", employeeId: "DEPT004", place: "East Zone" },
+      { fullName: "Vikram Reddy", phonenumber: "1001234571", designation: "Department Manager", employeeId: "DEPT005", place: "West Zone" },
     ]);
     console.log(`✅ Created ${departments.length} departments\n`);
 
-    // Create Issues
-    console.log("🚨 Creating issues...");
+    // Create Workers
+    console.log("👷 Creating workers...");
+    const workers = await WorkerModel.create([
+      { fullName: "Bob Kumar", phonenumber: "2001234567", email: "bob.worker@civic.gov", employeeId: "WRK001", departmentId: departments[0]._id, zone: "North Zone", specialization: ["Road Infrastructure", "General"], isActive: true },
+      { fullName: "Alice Verma", phonenumber: "2001234568", email: "alice.worker@civic.gov", employeeId: "WRK002", departmentId: departments[0]._id, zone: "North Zone", specialization: ["Waste Management"], isActive: true },
+      { fullName: "Charlie Nair", phonenumber: "2001234569", email: "charlie.worker@civic.gov", employeeId: "WRK003", departmentId: departments[1]._id, zone: "South Zone", specialization: ["Environmental Issues"], isActive: true },
+      { fullName: "Divya Rao", phonenumber: "2001234570", email: "divya.worker@civic.gov", employeeId: "WRK004", departmentId: departments[1]._id, zone: "South Zone", specialization: ["Public Safety"], isActive: true },
+      { fullName: "Dave Thomas", phonenumber: "2001234571", email: "dave.worker@civic.gov", employeeId: "WRK005", departmentId: departments[2]._id, zone: "Central Area", specialization: ["Utilities & Infrastructure"], isActive: true },
+      { fullName: "Eve Reddy", phonenumber: "2001234572", email: "eve.worker@civic.gov", employeeId: "WRK006", departmentId: departments[3]._id, zone: "East Zone", specialization: ["Public Safety", "General"], isActive: true },
+      { fullName: "Farhan Ali", phonenumber: "2001234573", email: "farhan.worker@civic.gov", employeeId: "WRK007", departmentId: departments[4]._id, zone: "West Zone", specialization: ["Road Infrastructure", "Waste Management"], isActive: true },
+    ]);
+    console.log(`✅ Created ${workers.length} workers\n`);
+
+    // Create Issues and IssueStatusHistory
+    console.log("🚨 Creating issues and status history...");
     const issueTypes = [
       "Road Infrastructure",
       "Waste Management",
@@ -145,29 +112,35 @@ async function seed() {
     ];
     const statuses = ["Pending", "In Progress", "Resolved", "Rejected"];
     const locations = [
-      { address: "Main Street Downtown", latitude: 40.7128, longitude: -74.006 },
-      { address: "Central Park Area", latitude: 40.7829, longitude: -73.9654 },
-      { address: "Brooklyn Bridge Plaza", latitude: 40.7061, longitude: -73.9969 },
-      { address: "Times Square", latitude: 40.758, longitude: -73.9855 },
-      { address: "Fifth Avenue", latitude: 40.7489, longitude: -73.968 },
-      { address: "Grand Central", latitude: 40.7527, longitude: -73.9772 },
-      { address: "Madison Square Garden", latitude: 40.7505, longitude: -73.9934 },
-      { address: "Wall Street", latitude: 40.7074, longitude: -74.0113 },
+      { address: "North Zone - Market Road", latitude: 40.7128, longitude: -74.006, zone: "North Zone" },
+      { address: "North Zone - Bus Stand", latitude: 40.7191, longitude: -74.0011, zone: "North Zone" },
+      { address: "South Zone - Lake Park", latitude: 40.7829, longitude: -73.9654, zone: "South Zone" },
+      { address: "South Zone - Ward Office", latitude: 40.7752, longitude: -73.9718, zone: "South Zone" },
+      { address: "Central Area - Main Plaza", latitude: 40.7061, longitude: -73.9969, zone: "Central Area" },
+      { address: "Central Area - Civic Hall", latitude: 40.7114, longitude: -73.9912, zone: "Central Area" },
+      { address: "East Zone - Station Road", latitude: 40.758, longitude: -73.9855, zone: "East Zone" },
+      { address: "West Zone - Avenue 5", latitude: 40.7489, longitude: -73.968, zone: "West Zone" },
     ];
 
-    const issues = [];
-    for (let i = 0; i < 20; i++) {
-      const randomCitizen = citizens[Math.floor(Math.random() * citizens.length)];
-      const randomAdmin = Math.random() > 0.5 ? admins[Math.floor(Math.random() * admins.length)] : null;
-      const randomType = issueTypes[Math.floor(Math.random() * issueTypes.length)];
-      const randomLocation = locations[Math.floor(Math.random() * locations.length)];
-      const randomStatus = statuses[Math.floor(Math.random() * statuses.length)];
+    const issues: any[] = [];
+    const historyEntries = [];
 
-      // Get random reporters (other citizens)
+    for (let i = 0; i < 30; i++) {
+      const randomCitizen = citizens[Math.floor(Math.random() * citizens.length)];
+      const randomAdmin = admins[Math.floor(Math.random() * admins.length)];
+      const randomLocation = locations[i % locations.length];
+      const randomType = issueTypes[i % issueTypes.length];
+      const randomStatus = statuses[i % statuses.length];
+
       const reporterCitizens = citizens
         .filter((c) => c._id.toString() !== randomCitizen._id.toString())
         .sort(() => Math.random() - 0.5)
         .slice(0, Math.floor(Math.random() * 3));
+
+      const isResolved = randomStatus === "Resolved";
+      const isInProgress = randomStatus === "In Progress" || isResolved;
+      
+      const costAmount = isResolved ? Math.floor(Math.random() * 5000) + 100 : (isInProgress ? Math.floor(Math.random() * 1000) + 50 : 0);
 
       const issue = await IssueModel.create({
         citizenId: randomCitizen._id,
@@ -181,46 +154,94 @@ async function seed() {
           latitude: randomLocation.latitude + (Math.random() - 0.5) * 0.01,
           longitude: randomLocation.longitude + (Math.random() - 0.5) * 0.01,
         },
-        handledBy: randomAdmin?._id || null,
+        handledBy: randomAdmin._id,
         upvotes: Math.floor(Math.random() * 20),
         upvotedBy: reporterCitizens.map((c) => c._id.toString()).slice(0, Math.floor(Math.random() * 5)),
+        costAmount: costAmount,
+        departmentAssigned: randomLocation.zone,
+        resolvedAt: isResolved ? new Date() : undefined,
       });
       issues.push(issue);
+
+      // Create history entries
+      // 1. Always create a "Pending" history entry when reported
+      const reportDate = new Date();
+      reportDate.setDate(reportDate.getDate() - 10);
+      
+      historyEntries.push({
+        issueID: issue._id,
+        status: "Pending",
+        handledBy: randomAdmin._id,
+        changedBy: randomAdmin._id,
+        costAdded: 0,
+        changedAt: reportDate,
+      });
+
+      // 2. If in progress, create an in progress entry
+      if (isInProgress) {
+        const ipDate = new Date(reportDate);
+        ipDate.setDate(ipDate.getDate() + 2);
+        
+        historyEntries.push({
+          issueID: issue._id,
+          status: "In Progress",
+          handledBy: randomAdmin._id,
+          changedBy: randomAdmin._id,
+          costAdded: Math.floor(costAmount * 0.3), // 30% of cost at In Progress
+          changedAt: ipDate,
+        });
+      }
+
+      // 3. If resolved, create resolved entry
+      if (isResolved) {
+        const resDate = new Date();
+        
+        historyEntries.push({
+          issueID: issue._id,
+          status: "Resolved",
+          handledBy: randomAdmin._id,
+          changedBy: randomAdmin._id,
+          costAdded: Math.floor(costAmount * 0.7), // 70% of cost at Resolved
+          changedAt: resDate,
+        });
+      }
+      
+      // 4. If rejected
+      if (randomStatus === "Rejected") {
+         const rejDate = new Date(reportDate);
+         rejDate.setDate(rejDate.getDate() + 1);
+         historyEntries.push({
+          issueID: issue._id,
+          status: "Rejected",
+          handledBy: randomAdmin._id,
+          changedBy: randomAdmin._id,
+          costAdded: 0,
+          changedAt: rejDate,
+        });
+      }
     }
-    console.log(`✅ Created ${issues.length} issues\n`);
+
+    for (const worker of workers) {
+      const workerIssues = issues
+        .filter((issue) => issue.departmentAssigned === worker.zone)
+        .slice(0, 3)
+        .map((issue) => issue._id);
+
+      await WorkerModel.findByIdAndUpdate(worker._id, {
+        assignedIssues: workerIssues,
+      });
+    }
+    
+    await IssueStatusHistoryModel.insertMany(historyEntries);
+    console.log(`✅ Created ${issues.length} issues and ${historyEntries.length} history records\n`);
 
     // Create User Authentication Entries
     console.log("🔐 Creating user authentication entries...");
     const userEntries = [];
 
-    // Citizens
-    for (const citizen of citizens) {
-      userEntries.push({
-        phonenumber: citizen.phonenumber,
-        role: "citizen",
-        roleRefId: citizen._id,
-      });
-    }
-
-    // Admins
-    for (const admin of admins) {
-      userEntries.push({
-        phonenumber: admin.phonenumber,
-        employeeId: admin.employeeId,
-        role: "admin",
-        roleRefId: admin._id,
-      });
-    }
-
-    // Department Managers
-    for (const dept of departments) {
-      userEntries.push({
-        phonenumber: dept.phonenumber,
-        employeeId: dept.employeeId,
-        role: "department",
-        roleRefId: dept._id,
-      });
-    }
+    for (const citizen of citizens) userEntries.push({ phonenumber: citizen.phonenumber, role: "citizen", roleRefId: citizen._id });
+    for (const admin of admins) userEntries.push({ phonenumber: admin.phonenumber, employeeId: admin.employeeId, role: "admin", roleRefId: admin._id });
+    for (const dept of departments) userEntries.push({ phonenumber: dept.phonenumber, employeeId: dept.employeeId, role: "department", roleRefId: dept._id });
 
     await UserModel.create(userEntries);
     console.log(`✅ Created ${userEntries.length} user authentication entries\n`);
@@ -232,7 +253,9 @@ async function seed() {
     console.log(`   Citizens: ${citizens.length}`);
     console.log(`   Admins: ${admins.length}`);
     console.log(`   Departments: ${departments.length}`);
+    console.log(`   Workers: ${workers.length}`);
     console.log(`   Issues: ${issues.length}`);
+    console.log(`   History Records: ${historyEntries.length}`);
     console.log(`   User Auth Entries: ${userEntries.length}\n`);
 
     console.log("📝 Test Credentials:");
@@ -241,7 +264,7 @@ async function seed() {
     console.log("   Phone: 8001234567\n");
     console.log("👨‍💼 Admin Login:");
     console.log("   Phone: 9001234567\n");
-    console.log("🏢 Department Manager Login (Electricity Dept):");
+    console.log("🏢 Department Manager Login (North Zone):");
     console.log("   Phone: 1001234567\n");
     console.log("─".repeat(50));
   } catch (error) {

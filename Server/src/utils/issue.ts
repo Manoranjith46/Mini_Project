@@ -3,6 +3,7 @@ import { Types } from "mongoose";
 
 export interface IIssue {
   citizenId: Types.ObjectId; // reference to Citizen
+  reporters?: Types.ObjectId[]; // array of citizen IDs who reported the same issue
   issueType:
     | "Road Infrastructure"
     | "Waste Management"
@@ -12,12 +13,15 @@ export interface IIssue {
     | "Other";
   title: string;
   description: string;
-  status?: "In Progress" | "Resolved" | "Rejected" | "Pending" | "Reported";
+  status?: "In Progress" | "Resolved" | "Rejected" | "Pending";
   location: ILocation; // embedded location object
   media?: Types.ObjectId[]; // refs to multimedia
   upvotes?: number;
   upvotedBy?: string[];
   createdAt?: Date;
   updatedAt?: Date;
-  handledBy?: Object | string; 
+  handledBy?: Object | string;
+  costAmount?: number;
+  resolvedAt?: Date;
+  departmentAssigned?: string;
 }

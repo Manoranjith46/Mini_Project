@@ -74,11 +74,11 @@ export const findNearbyDuplicates = async (
           ? item.issue.reporters.length 
           : 1;
         return {
-          _id: item.issue._id.toString(),
+          _id: (item.issue._id as any).toString(),
           title: item.issue.title,
           description: item.issue.description,
           issueType: item.issue.issueType,
-          status: item.issue.status,
+          status: item.issue.status || "Pending",
           location: item.issue.location,
           reporterCount: reporterCount,
           distance: Math.round(item.distance),

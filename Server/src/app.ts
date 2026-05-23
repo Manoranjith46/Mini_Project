@@ -7,6 +7,9 @@ import issueRoutes from "./routes/issue.routes";
 import fileRoutes from "./routes/file.routes";
 import authRoutes from "./routes/auth.routes";
 import departmentRoutes from "./routes/department.routes";
+import workerRoutes from "./routes/worker.routes";
+import analyticsRoutes from "./routes/analytics.routes";
+import reportsRoutes from "./routes/reports.routes";
 
 const app = express();
 
@@ -29,6 +32,9 @@ app.use("/api/v1", adminRoutes);
 app.use("/api/v1", issueRoutes);
 app.use("/api/v1", fileRoutes);
 app.use("/api/v1", departmentRoutes);
+app.use("/api/v1", workerRoutes);
+app.use("/api/v1", analyticsRoutes);
+app.use("/api/v1", reportsRoutes);
 app.use("/api", (_req, res) => {
   res.status(404).json({ message: "API route not found" });
 });

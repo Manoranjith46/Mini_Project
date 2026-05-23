@@ -70,6 +70,19 @@ const IssueSchema = new Schema<IIssue & Document>(
     upvotedBy: [{
       type: String,
     }],
+    costAmount: {
+      type: Number,
+      default: 0,
+      min: 0,
+    },
+    resolvedAt: {
+      type: Date,
+      sparse: true,
+    },
+    departmentAssigned: {
+      type: String,
+      sparse: true,
+    },
   },
   { timestamps: true }
 );
