@@ -1,0 +1,12 @@
+"use strict";
+Object.defineProperty(exports, "__esModule", { value: true });
+const express_1 = require("express");
+const auth_middleware_1 = require("../middlerware/auth.middleware");
+const department_controller_1 = require("../controllers/department.controller");
+const router = (0, express_1.Router)();
+router.get("/department/managers", auth_middleware_1.authMiddleware, department_controller_1.getAllDepartments);
+router.post("/department/managers", auth_middleware_1.authMiddleware, department_controller_1.createDepartmentManager);
+router.get("/department/profile", auth_middleware_1.authMiddleware, department_controller_1.getDepartmentProfile);
+router.put("/department/:id", auth_middleware_1.authMiddleware, department_controller_1.updateDepartmentProfile);
+router.get("/department/issues", auth_middleware_1.authMiddleware, department_controller_1.getDepartmentIssues);
+exports.default = router;
