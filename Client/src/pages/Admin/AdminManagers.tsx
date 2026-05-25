@@ -15,6 +15,7 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { useLoader } from "../../context/LoaderContext";
 import AdminLoader from "./components/loader/loader";
+import { Skeleton } from "../components/ui/skeleton";
 
 interface DepartmentManager {
   _id: string;
@@ -119,7 +120,58 @@ const AdminManagers = () => {
   };
 
   if (loading) {
-    return <AdminLoader message="Loading managers..." />;
+    return (
+      <div className="px-6 py-6 space-y-6 bg-gradient-to-br from-emerald-50 to-green-50 min-h-screen">
+        {/* Header */}
+        <div className="space-y-2">
+          <Skeleton className="h-10 w-64 animate-pulse" />
+          <Skeleton className="h-4 w-96 animate-pulse" />
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-4">
+          {[...Array(2)].map((_, i) => (
+            <div key={i} className="bg-white rounded-lg p-6 space-y-3 shadow-sm border">
+              <Skeleton className="h-4 w-24 animate-pulse" />
+              <Skeleton className="h-8 w-16 animate-pulse" />
+            </div>
+          ))}
+          <div className="hidden xl:block" />
+          <Skeleton className="h-20 rounded-lg animate-pulse" />
+        </div>
+
+        {/* Search and Filters */}
+        <div className="flex gap-3 flex-col md:flex-row items-center">
+          <Skeleton className="h-10 flex-1 animate-pulse" />
+          <Skeleton className="h-10 w-32 animate-pulse" />
+        </div>
+
+        {/* Table Skeleton */}
+        <div className="bg-white rounded-xl shadow-sm border overflow-hidden p-6 space-y-4">
+          <div className="flex justify-between border-b pb-4">
+            {[...Array(4)].map((_, i) => (
+              <Skeleton key={i} className="h-4 w-20 animate-pulse" />
+            ))}
+          </div>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, idx) => (
+              <div key={idx} className="flex justify-between items-center py-4 border-b">
+                <div className="flex items-center gap-3">
+                  <Skeleton className="w-10 h-10 rounded-full animate-pulse" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-28 animate-pulse" />
+                    <Skeleton className="h-3 w-20 animate-pulse" />
+                  </div>
+                </div>
+                <Skeleton className="h-6 w-20 rounded-full animate-pulse" />
+                <Skeleton className="h-4 w-24 animate-pulse" />
+                <Skeleton className="h-4 w-32 animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

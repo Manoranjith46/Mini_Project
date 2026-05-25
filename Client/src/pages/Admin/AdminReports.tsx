@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useLoader } from "../../context/LoaderContext";
 import AdminLoader from "./components/loader/loader";
+import { Skeleton } from "../components/ui/skeleton";
 import {
   Search,
   Download,
@@ -192,7 +193,62 @@ const AdminReports = () => {
   };
 
   if (loading) {
-    return <AdminLoader message="Loading reports..." fullScreen />;
+    return (
+      <div className="px-6 py-6 space-y-6 bg-gradient-to-br from-emerald-50 to-green-50 min-h-screen">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-64 animate-pulse" />
+            <Skeleton className="h-4 w-96 animate-pulse" />
+          </div>
+          <Skeleton className="h-10 w-32 animate-pulse" />
+        </div>
+
+        {/* Stats Summary */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <div key={i} className="bg-white rounded-lg shadow p-4 space-y-2">
+              <Skeleton className="h-4 w-28 animate-pulse" />
+              <Skeleton className="h-8 w-16 animate-pulse" />
+            </div>
+          ))}
+        </div>
+
+        {/* Filters */}
+        <div className="bg-white rounded-xl shadow-lg p-6 flex flex-col md:flex-row gap-4 items-end">
+          <div className="flex-1 space-y-2">
+            <Skeleton className="h-4 w-28 animate-pulse" />
+            <Skeleton className="h-10 w-full animate-pulse" />
+          </div>
+          <Skeleton className="h-10 w-24 animate-pulse" />
+          <Skeleton className="h-10 w-24 animate-pulse" />
+        </div>
+
+        {/* Table Skeleton */}
+        <div className="bg-white rounded-xl shadow-lg overflow-hidden p-6 space-y-4">
+          <div className="flex justify-between border-b pb-4">
+            {[...Array(6)].map((_, i) => (
+              <Skeleton key={i} className="h-4 w-20 animate-pulse" />
+            ))}
+          </div>
+          <div className="space-y-4">
+            {[...Array(5)].map((_, idx) => (
+              <div key={idx} className="flex justify-between items-center py-4 border-b">
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-40 animate-pulse" />
+                  <Skeleton className="h-3 w-56 animate-pulse" />
+                </div>
+                <Skeleton className="h-6 w-20 rounded-full animate-pulse" />
+                <Skeleton className="h-4 w-32 animate-pulse" />
+                <Skeleton className="h-6 w-16 rounded-full animate-pulse" />
+                <Skeleton className="h-4 w-24 animate-pulse" />
+                <Skeleton className="h-8 w-8 rounded-md animate-pulse" />
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (

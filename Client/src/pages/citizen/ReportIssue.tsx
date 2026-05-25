@@ -14,10 +14,12 @@ import { ArrowLeft, MapPin, Upload, Send, Search, AlertCircle, Check, X } from "
 import { useNavigate } from "react-router-dom";
 import MapComponent from "../components/MapBox";
 import { toast } from "sonner";
+import { useLoader } from "../../context/LoaderContext";
 
 
 const ReportIssue = ({ onBack }: { onBack?: () => void }) => {
   const navigate = useNavigate();
+  const { showLoader, hideLoader } = useLoader();
   
   const handleBack = () => {
     if (onBack) {
@@ -115,6 +117,7 @@ const ReportIssue = ({ onBack }: { onBack?: () => void }) => {
     }
 
     setLoading(true);
+    showLoader();
     try {
       const token = localStorage.getItem("auth_token");
       if (!token) {
@@ -166,6 +169,7 @@ const ReportIssue = ({ onBack }: { onBack?: () => void }) => {
       toast.error("Something went wrong");
     } finally {
       setLoading(false);
+      hideLoader();
     }
   };
 
@@ -179,6 +183,7 @@ const ReportIssue = ({ onBack }: { onBack?: () => void }) => {
 
     try {
       setLoading(true);
+      showLoader();
       const response = await fetch(
         `${import.meta.env.VITE_BACKEND_URL}/api/v1/issue/add-reporter`,
         {
@@ -206,6 +211,7 @@ const ReportIssue = ({ onBack }: { onBack?: () => void }) => {
       toast.error("Something went wrong");
     } finally {
       setLoading(false);
+      hideLoader();
     }
   };
 
@@ -213,6 +219,7 @@ const ReportIssue = ({ onBack }: { onBack?: () => void }) => {
     // User chose to create a new issue anyway
     setDuplicateWarning(null);
     setLoading(true);
+    showLoader();
     try {
       const token = localStorage.getItem("auth_token");
       if (!token) {
@@ -254,6 +261,7 @@ const ReportIssue = ({ onBack }: { onBack?: () => void }) => {
       toast.error("Something went wrong");
     } finally {
       setLoading(false);
+      hideLoader();
     }
   };
 

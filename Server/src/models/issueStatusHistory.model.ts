@@ -12,6 +12,14 @@ const IssueStatusHistorySchema = new Schema(
       enum: ["In Progress", "Resolved", "Rejected", "Pending"],
       required: true,
     },
+    title: {
+      type: String,
+      default: "",
+    },
+    description: {
+      type: String,
+      default: "",
+    },
     handledBy: {
       type: Schema.Types.ObjectId,
       ref: "Admin",

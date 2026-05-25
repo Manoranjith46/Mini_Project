@@ -1,101 +1,105 @@
 // @ts-nocheck
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from './ManagerDashboard.module.css';
+import { useAuth } from '../../../context/AuthContext';
 
-const MOCK_FIELD_OFFICERS = [
-  { id: 'fo1', name: 'Rajesh Kumar', area: 'North Zone', activeIssues: 3, completedToday: 2, phone: '9876543210', status: 'active' },
-  { id: 'fo2', name: 'Priya Sharma', area: 'South Zone', activeIssues: 5, completedToday: 1, phone: '9876543211', status: 'active' },
-  { id: 'fo3', name: 'Amit Patel', area: 'East Zone', activeIssues: 2, completedToday: 4, phone: '9876543212', status: 'active' },
-  { id: 'fo4', name: 'Sunita Devi', area: 'West Zone', activeIssues: 4, completedToday: 3, phone: '9876543213', status: 'on-leave' },
-  { id: 'fo5', name: 'Vikram Singh', area: 'Central Zone', activeIssues: 1, completedToday: 5, phone: '9876543214', status: 'active' },
-];
+export default function ManagerDashboard({ user: propUser, viewMode = 'dashboard' }) {
+  const { user: authUser } = useAuth();
+  const user = propUser || authUser;
 
-const MOCK_ISSUES = [
-  {
-    id: 1,
-    ticketNo: 'WTR-2024-001',
-    date: '2024-01-21',
-    location: 'Block 5, Elm Avenue',
-    description: 'Water pipeline leakage causing road damage',
-    status: 'unassigned',
-    priority: 'high',
-    reporter: 'John D.',
-    upvotes: 45,
-    assignedTo: null,
-  },
-  {
-    id: 2,
-    ticketNo: 'WTR-2024-002',
-    date: '2024-01-20',
-    location: '45 Oak Drive',
-    description: 'No water supply for 2 days',
-    status: 'unassigned',
-    priority: 'critical',
-    reporter: 'Sarah M.',
-    upvotes: 89,
-    assignedTo: null,
-  },
-  {
-    id: 3,
-    ticketNo: 'WTR-2024-003',
-    date: '2024-01-18',
-    location: 'Community Park',
-    description: 'Broken water fountain',
-    status: 'assigned',
-    priority: 'medium',
-    reporter: 'Mike R.',
-    upvotes: 12,
-    assignedTo: 'fo1',
-  },
-  {
-    id: 4,
-    ticketNo: 'WTR-2024-004',
-    date: '2024-01-15',
-    location: '123 Main Street',
-    description: 'Low water pressure in residential area',
-    status: 'in-progress',
-    priority: 'medium',
-    reporter: 'Emily T.',
-    upvotes: 34,
-    assignedTo: 'fo2',
-  },
-  {
-    id: 5,
-    ticketNo: 'WTR-2024-005',
-    date: '2024-01-14',
-    location: 'Market Square',
-    description: 'Contaminated water reported',
-    status: 'in-progress',
-    priority: 'critical',
-    reporter: 'David L.',
-    upvotes: 156,
-    assignedTo: 'fo3',
-  },
-  {
-    id: 6,
-    ticketNo: 'WTR-2024-006',
-    date: '2024-01-12',
-    location: '78 Pine Street',
-    description: 'Water meter malfunction',
-    status: 'resolved',
-    priority: 'low',
-    reporter: 'Anna K.',
-    upvotes: 8,
-    assignedTo: 'fo4',
-  },
-];
-
-export default function ManagerDashboard({ user, viewMode = 'dashboard' }) {
-  const [issues, setIssues] = useState(MOCK_ISSUES);
-  const [officers, setOfficers] = useState(MOCK_FIELD_OFFICERS);
+  const [issues, setIssues] = useState([]);
+  const [officers, setOfficers] = useState([]);
   const [selectedIssue, setSelectedIssue] = useState(null);
   const [showAssignModal, setShowAssignModal] = useState(false);
   const [showAddOfficerModal, setShowAddOfficerModal] = useState(false);
   const [filter, setFilter] = useState('all');
   const [priorityFilter, setPriorityFilter] = useState('all');
   const [newOfficer, setNewOfficer] = useState({ name: '', phone: '', area: '', empId: '' });
+  const [loading, setLoading] = useState(true);
+
+  // Fetch real issues from the department endpoint
+  const fetchIssues = async () => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/department/issues`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+        }
+      );
+      const data = await response.json();
+      if (data.issues) {
+        // Map API response to component's expected format
+        const mapped = data.issues.map((issue, idx) => ({
+          id: issue._id,
+          ticketNo: `ISS-${String(idx + 1).padStart(3, '0')}`,
+          date: issue.reportedAt || issue.createdAt,
+          location: issue.location?.address || 'Unknown',
+          description: issue.description || issue.title,
+          status: mapStatus(issue.status),
+          priority: 'medium', // API doesn't have priority; default to medium
+          reporter: issue.reportedBy || 'Anonymous',
+          upvotes: issue.upvotes || 0,
+          assignedTo: null,
+        }));
+        setIssues(mapped);
+      }
+    } catch (error) {
+      console.error("Error fetching issues:", error);
+    }
+  };
+
+  // Fetch real workers from the worker endpoint
+  const fetchWorkers = async () => {
+    try {
+      const zone = user?.place || 'Unassigned';
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/workers/zone/${zone}`,
+        {
+          headers: {
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+        }
+      );
+      const data = await response.json();
+      if (data.success && data.data) {
+        const mapped = data.data.map((worker) => ({
+          id: worker._id,
+          name: worker.fullName,
+          area: worker.zone || 'Unassigned',
+          activeIssues: Array.isArray(worker.assignedIssues) ? worker.assignedIssues.length : 0,
+          completedToday: 0,
+          phone: worker.phonenumber || '',
+          status: worker.isActive ? 'active' : 'on-leave',
+        }));
+        setOfficers(mapped);
+      }
+    } catch (error) {
+      console.error("Error fetching workers:", error);
+    }
+  };
+
+  const mapStatus = (status) => {
+    switch (status) {
+      case 'Pending': return 'unassigned';
+      case 'In Progress': return 'in-progress';
+      case 'Resolved': return 'resolved';
+      case 'Rejected': return 'resolved';
+      default: return 'unassigned';
+    }
+  };
+
+  useEffect(() => {
+    const loadData = async () => {
+      setLoading(true);
+      await Promise.all([fetchIssues(), fetchWorkers()]);
+      setLoading(false);
+    };
+    loadData();
+  }, [user?.place]);
 
   const metrics = {
     total: issues.length,
@@ -105,12 +109,32 @@ export default function ManagerDashboard({ user, viewMode = 'dashboard' }) {
     critical: issues.filter(i => i.priority === 'critical').length,
   };
 
-  const handleAssign = (issueId, officerId) => {
-    setIssues(prev => prev.map(issue => 
-      issue.id === issueId 
-        ? { ...issue, status: 'assigned', assignedTo: officerId }
-        : issue
-    ));
+  const handleAssign = async (issueId, officerId) => {
+    try {
+      const response = await fetch(
+        `${import.meta.env.VITE_BACKEND_URL}/api/v1/workers/assign`,
+        {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+          },
+          body: JSON.stringify({ workerId: officerId, issueId }),
+        }
+      );
+      const data = await response.json();
+      if (data.success) {
+        setIssues(prev => prev.map(issue =>
+          issue.id === issueId
+            ? { ...issue, status: 'assigned', assignedTo: officerId }
+            : issue
+        ));
+        // Refresh workers to update their active issue counts
+        await fetchWorkers();
+      }
+    } catch (error) {
+      console.error("Error assigning worker:", error);
+    }
     setShowAssignModal(false);
     setSelectedIssue(null);
   };
@@ -121,18 +145,37 @@ export default function ManagerDashboard({ user, viewMode = 'dashboard' }) {
     setShowAssignModal(true);
   };
 
-  const handleAddOfficer = () => {
+  const handleAddOfficer = async () => {
     if (newOfficer.name && newOfficer.phone && newOfficer.area) {
-      const newId = `fo${officers.length + 1}`;
-      setOfficers([...officers, { 
-        ...newOfficer, 
-        id: newId, 
-        activeIssues: 0, 
-        completedToday: 0,
-        status: 'active' 
-      }]);
-      setNewOfficer({ name: '', phone: '', area: '', empId: '' });
-      setShowAddOfficerModal(false);
+      try {
+        const response = await fetch(
+          `${import.meta.env.VITE_BACKEND_URL}/api/v1/workers`,
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              Authorization: `Bearer ${localStorage.getItem("auth_token")}`,
+            },
+            body: JSON.stringify({
+              fullName: newOfficer.name,
+              phonenumber: newOfficer.phone,
+              employeeId: newOfficer.empId || `WRK-${Date.now()}`,
+              departmentId: user?.id,
+              zone: newOfficer.area,
+            }),
+          }
+        );
+        const data = await response.json();
+        if (data.success) {
+          await fetchWorkers();
+          setNewOfficer({ name: '', phone: '', area: '', empId: '' });
+          setShowAddOfficerModal(false);
+        } else {
+          alert(data.message || 'Failed to add worker');
+        }
+      } catch (error) {
+        console.error("Error adding worker:", error);
+      }
     }
   };
 
@@ -164,6 +207,14 @@ export default function ManagerDashboard({ user, viewMode = 'dashboard' }) {
   });
 
   const unassignedIssues = issues.filter(i => i.status === 'unassigned');
+
+  if (loading) {
+    return (
+      <div className={styles.dashboard} style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: '300px' }}>
+        <p>Loading dashboard data...</p>
+      </div>
+    );
+  }
 
   // Dashboard View
   const renderDashboard = () => (
@@ -244,7 +295,7 @@ export default function ManagerDashboard({ user, viewMode = 'dashboard' }) {
           <span className={styles.sectionBadge}>{officers.filter(o => o.status === 'active').length} Active</span>
         </div>
         <div className={styles.officersGrid}>
-          {officers.slice(0, 4).map(officer => (
+          {officers.length > 0 ? officers.slice(0, 4).map(officer => (
             <div key={officer.id} className={styles.officerCard}>
               <div className={styles.officerAvatar}>
                 {officer.name.split(' ').map(n => n[0]).join('')}
@@ -258,7 +309,9 @@ export default function ManagerDashboard({ user, viewMode = 'dashboard' }) {
                 <span className={styles.activeLabel}>Active</span>
               </div>
             </div>
-          ))}
+          )) : (
+            <p style={{ padding: '1rem', color: '#6b7280' }}>No field officers assigned to this zone yet.</p>
+          )}
         </div>
       </div>
 
@@ -269,7 +322,9 @@ export default function ManagerDashboard({ user, viewMode = 'dashboard' }) {
           <span className={styles.sectionBadge}>{issues.length} Total</span>
         </div>
         <div className={styles.issuesList}>
-          {issues.slice(0, 3).map(issue => renderIssueCard(issue))}
+          {issues.length > 0 ? issues.slice(0, 3).map(issue => renderIssueCard(issue)) : (
+            <p style={{ padding: '1rem', color: '#6b7280' }}>No issues assigned to this zone.</p>
+          )}
         </div>
       </div>
     </>
@@ -312,46 +367,44 @@ export default function ManagerDashboard({ user, viewMode = 'dashboard' }) {
           Add Officer
         </button>
       </div>
-      <div className={styles.officersTable}>
-        <div className={styles.tableHeader}>
-          <span>Officer</span>
-          <span>Area</span>
-          <span>Phone</span>
-          <span>Active Tasks</span>
-          <span>Status</span>
-          <span>Actions</span>
-        </div>
-        {officers.map(officer => (
-          <div key={officer.id} className={styles.tableRow}>
-            <div className={styles.officerCell}>
-              <div className={styles.officerAvatar}>
-                {officer.name.split(' ').map(n => n[0]).join('')}
-              </div>
-              <span>{officer.name}</span>
-            </div>
-            <span>{officer.area}</span>
-            <span>{officer.phone}</span>
-            <span className={styles.taskCount}>{officer.activeIssues}</span>
-            <span className={`${styles.statusBadge} ${styles[officer.status]}`}>
-              {officer.status === 'active' ? 'Active' : 'On Leave'}
-            </span>
-            <div className={styles.actionBtns}>
-              <button className={styles.editBtn} title="Edit">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/>
-                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/>
-                </svg>
-              </button>
-              <button className={styles.deleteBtn} onClick={() => handleRemoveOfficer(officer.id)} title="Remove">
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <polyline points="3 6 5 6 21 6"/>
-                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
-                </svg>
-              </button>
-            </div>
+      {officers.length > 0 ? (
+        <div className={styles.officersTable}>
+          <div className={styles.tableHeader}>
+            <span>Officer</span>
+            <span>Area</span>
+            <span>Phone</span>
+            <span>Active Tasks</span>
+            <span>Status</span>
+            <span>Actions</span>
           </div>
-        ))}
-      </div>
+          {officers.map(officer => (
+            <div key={officer.id} className={styles.tableRow}>
+              <div className={styles.officerCell}>
+                <div className={styles.officerAvatar}>
+                  {officer.name.split(' ').map(n => n[0]).join('')}
+                </div>
+                <span>{officer.name}</span>
+              </div>
+              <span>{officer.area}</span>
+              <span>{officer.phone}</span>
+              <span className={styles.taskCount}>{officer.activeIssues}</span>
+              <span className={`${styles.statusBadge} ${styles[officer.status]}`}>
+                {officer.status === 'active' ? 'Active' : 'On Leave'}
+              </span>
+              <div className={styles.actionBtns}>
+                <button className={styles.deleteBtn} onClick={() => handleRemoveOfficer(officer.id)} title="Remove">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <polyline points="3 6 5 6 21 6"/>
+                    <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/>
+                  </svg>
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        <p style={{ padding: '1rem', color: '#6b7280' }}>No field officers in this zone. Add one to get started.</p>
+      )}
     </div>
   );
 
@@ -363,7 +416,7 @@ export default function ManagerDashboard({ user, viewMode = 'dashboard' }) {
         <span className={styles.sectionBadge}>Real-time</span>
       </div>
       <div className={styles.workloadGrid}>
-        {officers.map(officer => {
+        {officers.length > 0 ? officers.map(officer => {
           const workloadPercentage = (officer.activeIssues / 8) * 100;
           const workloadLevel = workloadPercentage > 75 ? 'high' : workloadPercentage > 50 ? 'medium' : 'low';
           return (
@@ -403,7 +456,9 @@ export default function ManagerDashboard({ user, viewMode = 'dashboard' }) {
               </div>
             </div>
           );
-        })}
+        }) : (
+          <p style={{ padding: '1rem', color: '#6b7280' }}>No field officers to display workload for.</p>
+        )}
       </div>
     </div>
   );
@@ -483,13 +538,6 @@ export default function ManagerDashboard({ user, viewMode = 'dashboard' }) {
               Reassign
             </button>
           )}
-          <button className={styles.viewBtn}>
-            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-              <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-              <circle cx="12" cy="12" r="3"/>
-            </svg>
-            View
-          </button>
         </div>
       </div>
     </div>
@@ -524,27 +572,31 @@ export default function ManagerDashboard({ user, viewMode = 'dashboard' }) {
               </div>
               <div className={styles.officerSelect}>
                 <h4>Select Field Officer</h4>
-                <div className={styles.officerOptions}>
-                  {officers.filter(o => o.status === 'active').map(officer => (
-                    <button
-                      key={officer.id}
-                      className={styles.officerOption}
-                      onClick={() => handleAssign(selectedIssue.id, officer.id)}
-                    >
-                      <div className={styles.optionAvatar}>
-                        {officer.name.split(' ').map(n => n[0]).join('')}
-                      </div>
-                      <div className={styles.optionInfo}>
-                        <span className={styles.optionName}>{officer.name}</span>
-                        <span className={styles.optionArea}>{officer.area}</span>
-                      </div>
-                      <div className={styles.optionWorkload}>
-                        <span className={styles.workloadCount}>{officer.activeIssues}</span>
-                        <span className={styles.workloadLabel}>ACTIVE</span>
-                      </div>
-                    </button>
-                  ))}
-                </div>
+                {officers.filter(o => o.status === 'active').length > 0 ? (
+                  <div className={styles.officerOptions}>
+                    {officers.filter(o => o.status === 'active').map(officer => (
+                      <button
+                        key={officer.id}
+                        className={styles.officerOption}
+                        onClick={() => handleAssign(selectedIssue.id, officer.id)}
+                      >
+                        <div className={styles.optionAvatar}>
+                          {officer.name.split(' ').map(n => n[0]).join('')}
+                        </div>
+                        <div className={styles.optionInfo}>
+                          <span className={styles.optionName}>{officer.name}</span>
+                          <span className={styles.optionArea}>{officer.area}</span>
+                        </div>
+                        <div className={styles.optionWorkload}>
+                          <span className={styles.workloadCount}>{officer.activeIssues}</span>
+                          <span className={styles.workloadLabel}>ACTIVE</span>
+                        </div>
+                      </button>
+                    ))}
+                  </div>
+                ) : (
+                  <p style={{ padding: '1rem', color: '#6b7280' }}>No active field officers available. Add workers first.</p>
+                )}
               </div>
             </div>
           </div>

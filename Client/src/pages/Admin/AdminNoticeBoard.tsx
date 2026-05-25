@@ -14,6 +14,7 @@ import {
 } from "lucide-react";
 import { motion } from "framer-motion";
 import { toast } from "sonner";
+import { useLoader } from "../../context/LoaderContext";
 
 interface Notice {
   id: string;
@@ -25,36 +26,12 @@ interface Notice {
 }
 
 const AdminNoticeBoard = () => {
+  const { showLoader, hideLoader } = useLoader();
   const [title, setTitle] = useState("");
   const [message, setMessage] = useState("");
   const [targetAudience, setTargetAudience] = useState<"all" | "managers" | "citizens">("all");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [notices, setNotices] = useState<Notice[]>([
-    {
-      id: "1",
-      title: "System Maintenance",
-      message: "Scheduled maintenance this weekend. System will be down for 2 hours.",
-      audience: "managers",
-      createdAt: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000),
-      status: "active",
-    },
-    {
-      id: "2",
-      title: "New Feature Release",
-      message: "Citizens can now track the real-time status of their reported issues with live updates.",
-      audience: "all",
-      createdAt: new Date(Date.now() - 7 * 24 * 60 * 60 * 1000),
-      status: "active",
-    },
-    {
-      id: "3",
-      title: "Policy Update",
-      message: "Important update to issue reporting guidelines. Please review the new requirements.",
-      audience: "managers",
-      createdAt: new Date(Date.now() - 14 * 24 * 60 * 60 * 1000),
-      status: "active",
-    },
-  ]);
+  const [notices, setNotices] = useState<Notice[]>([]);
   const [searchQuery, setSearchQuery] = useState("");
   const [filterAudience, setFilterAudience] = useState<"all" | "managers" | "citizens" | "any">("any");
   const [showForm, setShowForm] = useState(false);
@@ -75,6 +52,7 @@ const AdminNoticeBoard = () => {
     }
 
     setIsSubmitting(true);
+    showLoader();
     setTimeout(() => {
       const newNotice: Notice = {
         id: Date.now().toString(),
@@ -91,12 +69,17 @@ const AdminNoticeBoard = () => {
       setTargetAudience("all");
       setShowForm(false);
       setIsSubmitting(false);
+      hideLoader();
     }, 1000);
   };
 
   const handleDelete = (id: string) => {
-    setNotices(notices.filter((n) => n.id !== id));
-    toast.success("Notice deleted");
+    showLoader();
+    setTimeout(() => {
+      setNotices(notices.filter((n) => n.id !== id));
+      toast.success("Notice deleted");
+      hideLoader();
+    }, 500);
   };
 
   const getAudienceLabel = (audience: string) => {
@@ -157,7 +140,7 @@ const AdminNoticeBoard = () => {
       transition={{ duration: 0.5 }}
       className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-50 p-6"
     >
-      <div className="max-w-6xl mx-auto space-y-6">
+      <div className="px-4 space-y-6">
         {/* Header */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

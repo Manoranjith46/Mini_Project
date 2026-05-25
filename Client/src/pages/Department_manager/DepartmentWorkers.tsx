@@ -4,6 +4,7 @@ import { motion } from "framer-motion";
 import { useAuth } from "../../context/AuthContext";
 import { useLoader } from "../../context/LoaderContext";
 import { Button } from "../components/ui/button";
+import { Skeleton } from "../components/ui/skeleton";
 import { Input } from "../components/ui/input";
 import { Eye, Plus, XCircle } from "lucide-react";
 import { toast } from "sonner";
@@ -21,7 +22,7 @@ interface Worker {
 
 const DepartmentWorkers = () => {
   const { user } = useAuth();
-  const { hideLoader } = useLoader();
+  const { showLoader, hideLoader } = useLoader();
   const navigate = useNavigate();
   const [workers, setWorkers] = useState<Worker[]>([]);
   const [loading, setLoading] = useState(true);
@@ -69,6 +70,7 @@ const DepartmentWorkers = () => {
 
     try {
       setSaving(true);
+      showLoader();
       const response = await fetch(`${import.meta.env.VITE_BACKEND_URL}/api/v1/workers`, {
         method: "POST",
         headers: {
@@ -111,6 +113,7 @@ const DepartmentWorkers = () => {
       toast.error("Error adding worker");
     } finally {
       setSaving(false);
+      hideLoader();
     }
   };
 
@@ -118,7 +121,7 @@ const DepartmentWorkers = () => {
     <motion.div
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
-      className="p-6 max-w-7xl mx-auto space-y-8"
+      className="px-4 space-y-8"
     >
       <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4">
         <div>
@@ -140,7 +143,24 @@ const DepartmentWorkers = () => {
 
       <div className="bg-white rounded-xl shadow-lg overflow-hidden">
         {loading ? (
-          <p className="p-6 text-center text-gray-500">Loading workers...</p>
+          <div className="p-6 space-y-4 animate-pulse">
+            <div className="flex justify-between border-b pb-4">
+              <Skeleton className="h-6 w-32" />
+              <Skeleton className="h-6 w-24" />
+              <Skeleton className="h-6 w-48" />
+              <Skeleton className="h-6 w-20" />
+              <Skeleton className="h-6 w-16" />
+            </div>
+            {[...Array(5)].map((_, i) => (
+              <div key={i} className="flex justify-between items-center py-4 border-b last:border-0">
+                <Skeleton className="h-5 w-32" />
+                <Skeleton className="h-5 w-24" />
+                <Skeleton className="h-5 w-48" />
+                <Skeleton className="h-5 w-20" />
+                <Skeleton className="h-8 w-16 rounded animate-none" />
+              </div>
+            ))}
+          </div>
         ) : workers.length === 0 ? (
           <p className="p-6 text-center text-gray-500">No workers found in this zone.</p>
         ) : (

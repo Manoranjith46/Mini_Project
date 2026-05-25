@@ -6,6 +6,7 @@ import { ArrowLeft, Loader2, UserPlus, AlertCircle } from "lucide-react";
 import { toast } from "sonner";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { useLoader } from "../../context/LoaderContext";
 
 interface FormErrors {
   fullName?: string;
@@ -33,6 +34,7 @@ const DESIGNATIONS = [
 
 const AdminAddManager = () => {
   const navigate = useNavigate();
+  const { showLoader, hideLoader } = useLoader();
   const [fullName, setFullName] = useState("");
   const [phonenumber, setPhonenumber] = useState("");
   const [employeeId, setEmployeeId] = useState("");
@@ -131,6 +133,7 @@ const AdminAddManager = () => {
     }
 
     setIsSubmitting(true);
+    showLoader();
 
     try {
       const response = await fetch(
@@ -171,6 +174,7 @@ const AdminAddManager = () => {
       console.error("Error adding manager:", error);
     } finally {
       setIsSubmitting(false);
+      hideLoader();
     }
   };
 

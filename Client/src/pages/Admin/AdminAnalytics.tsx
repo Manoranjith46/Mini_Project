@@ -22,6 +22,7 @@ import {
   Cell,
 } from "recharts";
 import { Button } from "../components/ui/button";
+import { Skeleton } from "../components/ui/skeleton";
 import type {
   AnalyticsData,
 } from "../../lib/analyticsUtils";
@@ -73,6 +74,7 @@ const AdminAnalytics = () => {
 
   useEffect(() => {
     if (!loading) {
+      setLoading(true);
       fetchAnalyticsData();
     }
   }, [timeRange]);
@@ -83,11 +85,44 @@ const AdminAnalytics = () => {
 
   if (loading) {
     return (
-      <div className="flex h-full items-center justify-center">
-        <div className="text-center">
-          <div className="mb-4 inline-block h-12 w-12 animate-spin rounded-full border-4 border-blue-200 border-t-blue-600"></div>
-          <p className="text-slate-600">Loading analytics dashboard...</p>
+      <div className="px-4 space-y-6 animate-pulse">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-64" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <Skeleton className="h-10 w-24" />
         </div>
+
+        {/* Filters */}
+        <div className="flex gap-2 rounded-lg bg-white p-4 shadow-sm">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-10 w-28 rounded-md" />
+          ))}
+        </div>
+
+        {/* Stats cards */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 lg:grid-cols-5">
+          {[...Array(5)].map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-lg" />
+          ))}
+        </div>
+
+        {/* Extra KPIs */}
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-3">
+          {[...Array(3)].map((_, i) => (
+            <Skeleton key={i} className="h-20 w-full rounded-lg" />
+          ))}
+        </div>
+
+        {/* Charts */}
+        <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
+          <Skeleton className="h-[360px] w-full rounded-xl" />
+          <Skeleton className="h-[360px] w-full rounded-xl" />
+        </div>
+
+        <Skeleton className="h-[360px] w-full rounded-xl" />
       </div>
     );
   }

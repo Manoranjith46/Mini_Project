@@ -1,6 +1,6 @@
 import { Router, Request, Response, NextFunction } from "express";
 import { upload } from "../middlerware/upload.middleware";
-import { createIssue, getIssues, deleteIssue, addReporterToExistingIssue } from "../controllers/issues.controllers";
+import { createIssue, getIssues, deleteIssue, addReporterToExistingIssue, getIssueById } from "../controllers/issues.controllers";
 import { authMiddleware } from "../middlerware/auth.middleware";
 
 const router = Router();
@@ -26,6 +26,7 @@ router.post(
   createIssue
 );
 
+router.get("/issue/:issueId", authMiddleware, getIssueById);
 router.get("/all-issues", authMiddleware, getIssues);
 router.post("/issue/add-reporter", authMiddleware, addReporterToExistingIssue);
 router.delete("/issue/:issueId", authMiddleware, deleteIssue);

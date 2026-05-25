@@ -5,6 +5,7 @@ import styles from './CommunityIssues.module.css';
 import { X } from 'lucide-react';
 import { Badge } from '../../components/ui/badge';
 import { motion } from 'framer-motion';
+import { Skeleton } from '../../components/ui/skeleton';
 
 interface Issue {
   _id: string;
@@ -64,7 +65,31 @@ export default function CommunityIssues() {
     }
   };
 
-  if (loading) return <div className={styles.loading}>Loading community issues...</div>;
+  if (loading) {
+    return (
+      <div className="space-y-6 max-w-7xl mx-auto p-6 animate-pulse">
+        <Skeleton className="h-8 w-48 mb-2" />
+        <Skeleton className="h-4 w-96 mb-6" />
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="bg-white rounded-xl shadow border p-6 space-y-4">
+              <Skeleton className="h-48 w-full rounded-lg" />
+              <div className="flex justify-between">
+                <Skeleton className="h-4 w-24" />
+                <Skeleton className="h-4 w-16" />
+              </div>
+              <Skeleton className="h-6 w-3/4" />
+              <Skeleton className="h-4 w-full" />
+              <div className="flex gap-4">
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-4 w-24" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>

@@ -5,6 +5,7 @@ import {
   FileText, 
   Users, 
   DollarSign,
+  BarChart3,
   LogOut,
   User
 } from "lucide-react";
@@ -69,6 +70,15 @@ export default function DepartmentSidebar() {
           <DollarSign className={styles.sidebarIcon} size={24} />
           <span className={styles.navLinkText}>
             Funds History
+          </span>
+        </Link>
+        <Link
+          className={`${styles.navLink} ${currentView === '/department/analytics' ? styles.navLinkActive : ''}`}
+          to="/department/analytics"
+        >
+          <BarChart3 className={styles.sidebarIcon} size={24} />
+          <span className={styles.navLinkText}>
+            Analytics
           </span>
         </Link>
       </nav>

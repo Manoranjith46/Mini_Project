@@ -53,8 +53,12 @@ interface Issues {
   adminResponse?: string;
 }
 
+import { useLoader } from "../../context/LoaderContext";
+import { Skeleton } from "../components/ui/skeleton";
+
 const AdminProfile = () => {
   const { user, updateUserProfile, token, isLoading } = useAuth();
+  const { showLoader, hideLoader } = useLoader();
   const [isEditing, setIsEditing] = useState(false);
   const [respondedIssues, setRespondedIssues] = useState<Issues[]>([]);
   const [loadingMyIssues, setLoadingMyIssues] = useState(true);
@@ -66,16 +70,40 @@ const AdminProfile = () => {
     department: user?.department || "",
   });
 
-  if (isLoading) {
-    return <p className="text-center mt-10">Loading profile...</p>;
-  }
-
-  if (!user) {
-    return <p className="text-center mt-10">Loading profile...</p>;
+  if (isLoading || !user) {
+    return (
+      <div className="pt-6 container mx-auto my-9 max-w-4xl space-y-6 px-4">
+        <Card className="bg-white/80 border border-white/20 shadow-lg rounded-xl p-6">
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center space-x-4">
+                <Skeleton className="h-20 w-20 rounded-full" />
+                <div className="space-y-2">
+                  <Skeleton className="h-6 w-48" />
+                  <Skeleton className="h-4 w-64" />
+                </div>
+              </div>
+              <Skeleton className="h-10 w-28" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <Skeleton className="h-4 w-20" />
+                  <Skeleton className="h-10 w-full" />
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      </div>
+    );
   }
 
   const handleSaveProfile = async () => {
     try {
+      showLoader();
       await updateUserProfile({
         fullName: profile.fullName,
         email: profile.email,
@@ -88,6 +116,8 @@ const AdminProfile = () => {
     } catch (error) {
       console.error("Update error:", error);
       toast.error("Failed to update profile");
+    } finally {
+      hideLoader();
     }
   };
 
@@ -145,17 +175,9 @@ const AdminProfile = () => {
         return "bg-[var(--bg-subtle)] text-[var(--text-muted)]";
     }
   };
-  if (loadingMyIssues) {
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <p className="text-muted-foreground">Loading handled issues...</p>
-      </div>
-    );
-  }
-
   return (
     <div className="h-full pb-12">
-      <div className="container mx-auto max-w-4xl space-y-6">
+      <div className="px-4 space-y-6">
         {/* Profile Header */}
         <Card
           className="bg-white/80 
@@ -420,7 +442,27 @@ const AdminProfile = () => {
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
-              {respondedIssues.length === 0 ? (
+              {loadingMyIssues ? (
+                <div className="space-y-4">
+                  {[...Array(2)].map((_, i) => (
+                    <div key={i} className="border rounded-lg p-4 space-y-3 bg-[var(--bg-page)] animate-pulse">
+                      <div className="flex items-start justify-between">
+                        <div className="space-y-2 w-3/4">
+                          <Skeleton className="h-5 w-1/3 animate-pulse" />
+                          <Skeleton className="h-4 w-full animate-pulse" />
+                        </div>
+                        <Skeleton className="h-6 w-20 rounded-full animate-pulse" />
+                      </div>
+                      <Skeleton className="h-12 w-full rounded-md animate-pulse" />
+                      <Separator className="my-2" />
+                      <div className="space-y-2">
+                        <Skeleton className="h-4 w-1/2 animate-pulse" />
+                        <Skeleton className="h-4 w-1/3 animate-pulse" />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              ) : respondedIssues.length === 0 ? (
                 <div className="flex flex-col items-center justify-center mt-10 ">
                   <div className="w-40 h-40 ">
                     <Player

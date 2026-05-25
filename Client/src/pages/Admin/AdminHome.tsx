@@ -14,6 +14,7 @@ import { Link } from "react-router-dom";
 import { motion } from "framer-motion";
 import { useLoader } from "../../context/LoaderContext";
 import AdminLoader from "./components/loader/loader";
+import { Skeleton } from "../components/ui/skeleton";
 
 interface DashboardStats {
   totalIssues: number;
@@ -98,7 +99,61 @@ const AdminHome = () => {
   };
 
   if (loading) {
-    return <AdminLoader message="Loading dashboard..." fullScreen />;
+    return (
+      <div className="px-4 space-y-6">
+        {/* Header */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-64 animate-pulse" />
+            <Skeleton className="h-4 w-96 animate-pulse" />
+          </div>
+          <Skeleton className="h-10 w-24 animate-pulse" />
+        </div>
+
+        {/* Stats Grid */}
+        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-5">
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="bg-white rounded-lg p-6 space-y-3 shadow-sm border">
+              <Skeleton className="h-4 w-24 animate-pulse" />
+              <Skeleton className="h-8 w-16 animate-pulse" />
+            </div>
+          ))}
+        </div>
+
+        {/* Two column layout */}
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          <div className="lg:col-span-2 bg-white rounded-xl shadow-sm border p-6 space-y-4">
+            <Skeleton className="h-6 w-48 animate-pulse" />
+            <div className="space-y-3">
+              {[...Array(5)].map((_, i) => (
+                <div key={i} className="flex justify-between items-center py-2 border-b">
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-48 animate-pulse" />
+                    <Skeleton className="h-3 w-32 animate-pulse" />
+                  </div>
+                  <Skeleton className="h-6 w-20 rounded-full animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="bg-white rounded-xl shadow-sm border p-6 space-y-4">
+            <Skeleton className="h-6 w-32 animate-pulse" />
+            <div className="space-y-4">
+              {[...Array(3)].map((_, i) => (
+                <div key={i} className="space-y-2">
+                  <div className="flex justify-between">
+                    <Skeleton className="h-4 w-24 animate-pulse" />
+                    <Skeleton className="h-4 w-12 animate-pulse" />
+                  </div>
+                  <Skeleton className="h-2 w-full rounded-full animate-pulse" />
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!stats) {
@@ -116,7 +171,7 @@ const AdminHome = () => {
       transition={{ duration: 0.5 }}
       className="min-h-screen bg-gradient-to-br from-emerald-50 to-green-50 py-8"
     >
-      <div className="container mx-auto px-4 space-y-8">
+      <div className="px-4 space-y-8">
         {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

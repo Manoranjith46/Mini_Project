@@ -8,6 +8,8 @@ import {
   assignWorkerToIssue,
   getWorkerAssignedIssues,
   updateWorkerProfile,
+  getWorkersForIssue,
+  unassignWorkerFromIssue,
 } from "../controllers/worker.controller";
 
 const router = Router();
@@ -26,6 +28,12 @@ router.get("/workers/:workerId", authMiddleware, getWorkerById);
 
 // Assign worker to issue
 router.post("/workers/assign", authMiddleware, assignWorkerToIssue);
+
+// Unassign worker from issue
+router.post("/workers/unassign", authMiddleware, unassignWorkerFromIssue);
+
+// Get workers assigned to a specific issue
+router.get("/workers/issue/:issueId", authMiddleware, getWorkersForIssue);
 
 // Get issues assigned to a worker
 router.get("/workers/:workerId/issues", authMiddleware, getWorkerAssignedIssues);

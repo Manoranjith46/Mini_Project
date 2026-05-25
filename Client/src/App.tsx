@@ -32,6 +32,7 @@ import DepartmentFunds from "./pages/Department_manager/DepartmentFunds";
 import DepartmentProfile from "./pages/Department_manager/DepartmentProfile";
 import DepartmentReportDetails from "./pages/Department_manager/DepartmentReportDetails";
 import DepartmentWorkerDetails from "./pages/Department_manager/DepartmentWorkerDetails";
+import DepartmentAnalytics from "./pages/Department_manager/DepartmentAnalytics";
 import ProtectedRoute from "./pages/components/ProtectedRoute";
 import { Loader } from "lucide-react";
 
@@ -110,6 +111,7 @@ const AppRoutes = () => {
           <Route path="workers" element={<DepartmentWorkers />} />
           <Route path="workers/:id" element={<DepartmentWorkerDetails />} />
           <Route path="funds" element={<DepartmentFunds />} />
+          <Route path="analytics" element={<DepartmentAnalytics />} />
           <Route path="profile" element={<DepartmentProfile />} />
         </Route>
         <Route

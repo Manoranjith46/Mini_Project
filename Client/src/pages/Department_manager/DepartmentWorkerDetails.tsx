@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { ArrowLeft, Briefcase, CheckCircle, MapPin, Phone, User } from "lucide-react";
 import { Button } from "../components/ui/button";
+import { Skeleton } from "../components/ui/skeleton";
 
 interface WorkerDetail {
   _id: string;
@@ -57,7 +58,31 @@ const DepartmentWorkerDetails = () => {
   }, [id]);
 
   if (loading) {
-    return <p className="p-6 text-center text-gray-500">Loading worker profile...</p>;
+    return (
+      <div className="px-4 space-y-6">
+        <Skeleton className="h-10 w-24 animate-pulse" />
+        <div className="bg-white rounded-xl shadow-lg p-6 space-y-6">
+          <div className="flex flex-col md:flex-row md:items-start md:justify-between gap-4 border-b pb-6">
+            <div className="space-y-2">
+              <Skeleton className="h-10 w-48 animate-pulse" />
+              <Skeleton className="h-4 w-32 animate-pulse" />
+            </div>
+            <Skeleton className="h-8 w-20 rounded-full animate-pulse" />
+          </div>
+          <div className="grid md:grid-cols-2 gap-4">
+            {[...Array(4)].map((_, i) => (
+              <div key={i} className="flex items-start gap-3 bg-gray-50 p-4 rounded-lg">
+                <Skeleton className="w-5 h-5 rounded-full animate-pulse" />
+                <div className="space-y-2 flex-1">
+                  <Skeleton className="h-4 w-28 animate-pulse" />
+                  <Skeleton className="h-3 w-16 animate-pulse" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+    );
   }
 
   if (!worker) {
@@ -65,7 +90,7 @@ const DepartmentWorkerDetails = () => {
   }
 
   return (
-    <div className="max-w-5xl mx-auto space-y-6">
+    <div className="px-4 space-y-6">
       <Button variant="ghost" onClick={() => navigate("/department/workers")}>
         <ArrowLeft className="w-4 h-4" />
         Back

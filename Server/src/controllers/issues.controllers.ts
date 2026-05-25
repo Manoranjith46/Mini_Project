@@ -299,6 +299,74 @@ export const addReporterToExistingIssue = async (
   }
 };
 
+export const getIssueById = async (req: Request, res: Response): Promise<void> => {
+  try {
+    const { issueId } = req.params;
+
+    if (!mongoose.Types.ObjectId.isValid(issueId)) {
+      res.status(400).json({ message: "Invalid issue ID format" });
+      return;
+    }
+
+    const issue = await IssueModel.findById(issueId)
+      .populate("citizenId", "fullName phonenumber email")
+      .populate("reporters", "fullName phonenumber")
+      .populate("handledBy", "fullName department employeeId")
+      .lean();
+
+    if (!issue) {
+      res.status(404).json({ message: "Issue not found" });
+      return;
+    }
+
+    // Fetch associated multimedia
+    const media = await MultimediaModel.find({ issueID: issueId });
+
+    const issueObj: any = { ...issue };
+    const image = media.length > 0 ? media[0].url : null;
+
+    res.json({
+      success: true,
+      issue: {
+        _id: issueObj._id,
+        title: issueObj.title,
+        description: issueObj.description,
+        type: issueObj.issueType,
+        location: issueObj.location,
+        reportedBy: (issueObj.citizenId as any)?.fullName || "Anonymous",
+        reportedByPhone: (issueObj.citizenId as any)?.phonenumber || null,
+        reportedAt: issueObj.createdAt,
+        image,
+        status: issueObj.status === "Reported" ? "Pending" : issueObj.status,
+        reporterCount: Array.isArray(issueObj.reporters) ? issueObj.reporters.length : 1,
+        reporters: issueObj.reporters,
+        createdAt: issueObj.createdAt,
+        updatedAt: issueObj.updatedAt,
+        upvotes: issueObj.upvotes || 0,
+        costAmount: issueObj.costAmount || 0,
+        resolvedAt: issueObj.resolvedAt,
+        departmentAssigned: issueObj.departmentAssigned,
+        citizenDetails: issueObj.citizenId ? {
+          _id: (issueObj.citizenId as any)._id,
+          fullName: (issueObj.citizenId as any).fullName,
+          email: (issueObj.citizenId as any).email,
+          phone: (issueObj.citizenId as any).phonenumber,
+        } : null,
+        handledBy: issueObj.handledBy,
+        media: media.map(m => ({
+          _id: m._id,
+          fileType: m.fileType,
+          url: m.url,
+          filename: m.filename,
+        })),
+      },
+    });
+  } catch (error: any) {
+    console.error("Error fetching issue by ID:", error);
+    res.status(500).json({ message: "Internal server error", error: error.message });
+  }
+};
+
 export const getIssues = async (req: Request, res: Response) => {
   try {
     const issues = await IssueModel.find({})

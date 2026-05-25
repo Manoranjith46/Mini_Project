@@ -21,7 +21,7 @@ const AdminLayout = () => {
       <Sidebar />
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col h-full overflow-hidden w-full relative pl-[70px]">
+      <main className="flex-1 flex flex-col h-full overflow-hidden w-full relative pl-[80px]">
         <header className="h-16 bg-white/80 backdrop-blur-md border-b border-slate-200 flex items-center justify-between px-4 lg:px-8 z-10 sticky top-0">
           <div className="flex items-center">
             <h2 className="text-lg font-semibold text-slate-800">
@@ -30,7 +30,7 @@ const AdminLayout = () => {
           </div>
         </header>
         
-        <div className="flex-1 overflow-auto bg-[var(--bg-page)] p-4 lg:p-8">
+        <div className="flex-1 overflow-auto bg-[var(--bg-page)] py-4 lg:py-6">
           <AnimatePresence mode="wait">
             <motion.div
               key={location.pathname}

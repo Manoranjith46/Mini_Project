@@ -18,6 +18,7 @@ import {
 } from "lucide-react";
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
+import { Skeleton } from "../components/ui/skeleton";
 import {
   DropdownMenu,
   DropdownMenuCheckboxItem,
@@ -160,14 +161,51 @@ const DepartmentReports = () => {
 
   if (loading) {
     return (
-      <div className="flex flex-col justify-center items-center h-screen bg-white">
-        <Player
-          autoplay
-          loop
-          animationData={starloader}
-          style={{ height: "200px", width: "200px" }}
-        />
-        <p className="text-muted-foreground mt-4">Loading dashboard...</p>
+      <div className="px-4 space-y-8 animate-pulse">
+        {/* Header Skeleton */}
+        <div className="flex items-center justify-between">
+          <div className="space-y-2">
+            <Skeleton className="h-10 w-64" />
+            <Skeleton className="h-4 w-96" />
+          </div>
+          <Skeleton className="h-10 w-24" />
+        </div>
+
+        {/* Stats Grid Skeleton */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+          {[...Array(4)].map((_, i) => (
+            <Skeleton key={i} className="h-24 w-full rounded-xl" />
+          ))}
+        </div>
+
+        {/* Filters Skeleton */}
+        <div className="flex flex-col sm:flex-row gap-4 justify-between">
+          <Skeleton className="h-10 w-full sm:w-64" />
+          <div className="flex gap-2">
+            <Skeleton className="h-10 w-32" />
+            <Skeleton className="h-10 w-32" />
+          </div>
+        </div>
+
+        {/* Reports Table Skeleton */}
+        <div className="bg-white rounded-xl shadow-lg border border-gray-150 p-6 space-y-4">
+          <div className="flex justify-between border-b pb-4">
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-6 w-24" />
+            <Skeleton className="h-6 w-32" />
+            <Skeleton className="h-6 w-16" />
+          </div>
+          {[...Array(5)].map((_, i) => (
+            <div key={i} className="flex justify-between items-center py-2 border-b last:border-0">
+              <Skeleton className="h-5 w-48" />
+              <Skeleton className="h-5 w-20" />
+              <Skeleton className="h-5 w-24" />
+              <Skeleton className="h-5 w-32" />
+              <Skeleton className="h-8 w-16 rounded" />
+            </div>
+          ))}
+        </div>
       </div>
     );
   }
@@ -185,9 +223,9 @@ const DepartmentReports = () => {
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ duration: 0.5 }}
-      className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50 py-8"
+      className="min-h-screen bg-gradient-to-br from-orange-50 to-amber-50"
     >
-      <div className="container mx-auto px-4 space-y-8">
+      <div className="px-4 space-y-8">
         {/* Header Section */}
         <motion.div
           initial={{ opacity: 0, y: -20 }}

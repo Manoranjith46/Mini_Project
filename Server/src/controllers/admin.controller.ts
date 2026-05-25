@@ -268,7 +268,7 @@ export const getDashboardStats = async (
     const issuesByType = await IssueModel.aggregate([
       {
         $group: {
-          _id: "$type",
+          _id: "$issueType",
           count: { $sum: 1 },
         },
       },
@@ -284,10 +284,18 @@ export const getDashboardStats = async (
         : 0;
 
     // Get recent issues (last 5)
-    const recentIssues = await IssueModel.find()
+    const recentIssuesRaw = await IssueModel.find()
       .sort({ createdAt: -1 })
       .limit(5)
-      .select("title status type createdAt");
+      .select("title status issueType createdAt");
+
+    const recentIssues = recentIssuesRaw.map((issue) => ({
+      _id: issue._id,
+      title: issue.title,
+      status: issue.status,
+      type: issue.issueType,
+      createdAt: (issue as any).createdAt || new Date(),
+    }));
 
     res.status(200).json({
       success: true,

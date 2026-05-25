@@ -6,8 +6,11 @@ import { Input } from "../components/ui/input";
 import { toast } from "sonner";
 import { User as UserIcon } from "lucide-react";
 
+import { useLoader } from "../../context/LoaderContext";
+
 const DepartmentProfile = () => {
   const { user, updateUserProfile } = useAuth();
+  const { showLoader, hideLoader } = useLoader();
   const [loading, setLoading] = useState(false);
   const [formData, setFormData] = useState({
     fullName: "",
@@ -32,12 +35,14 @@ const DepartmentProfile = () => {
     e.preventDefault();
     try {
       setLoading(true);
+      showLoader();
       await updateUserProfile(formData);
       toast.success("Profile updated successfully!");
     } catch (error: any) {
       toast.error(error.message || "Failed to update profile");
     } finally {
       setLoading(false);
+      hideLoader();
     }
   };
 
@@ -45,7 +50,7 @@ const DepartmentProfile = () => {
     <motion.div
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="max-w-2xl mx-auto p-6"
+      className="px-4"
     >
       <div className="bg-white rounded-2xl shadow-xl overflow-hidden border border-gray-100">
         <div className="bg-gradient-to-r from-orange-600 to-orange-700 px-8 py-12 text-white text-center">

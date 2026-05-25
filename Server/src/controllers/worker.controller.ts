@@ -168,3 +168,45 @@ export const updateWorkerProfile = async (req: AuthRequest, res: Response): Prom
     res.status(500).json({ message: "Internal server error" });
   }
 };
+
+export const getWorkersForIssue = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { issueId } = req.params;
+
+    const workers = await WorkerModel.find({
+      assignedIssues: issueId,
+    }).lean();
+
+    res.json({ success: true, data: workers });
+  } catch (error) {
+    console.error("Error fetching workers for issue:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};
+
+export const unassignWorkerFromIssue = async (req: AuthRequest, res: Response): Promise<void> => {
+  try {
+    const { workerId, issueId } = req.body;
+
+    if (!workerId || !issueId) {
+      res.status(400).json({ message: "Worker ID and Issue ID required" });
+      return;
+    }
+
+    const worker = await WorkerModel.findById(workerId);
+    if (!worker) {
+      res.status(404).json({ message: "Worker not found" });
+      return;
+    }
+
+    worker.assignedIssues = worker.assignedIssues.filter(
+      (id: any) => id.toString() !== issueId
+    );
+    await worker.save();
+
+    res.json({ success: true, message: "Worker unassigned from issue", data: worker });
+  } catch (error) {
+    console.error("Error unassigning worker:", error);
+    res.status(500).json({ message: "Internal server error" });
+  }
+};

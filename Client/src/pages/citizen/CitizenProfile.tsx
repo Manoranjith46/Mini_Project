@@ -41,8 +41,12 @@ interface Issues {
   status: string;
 }
 
+import { useLoader } from "../../context/LoaderContext";
+import { Skeleton } from "../components/ui/skeleton";
+
 const CitizenProfile = () => {
   const { user, updateUserProfile, token, isLoading } = useAuth();
+  const { showLoader, hideLoader } = useLoader();
   const [isEditing, setIsEditing] = useState(false);
 
   const [myIssues, setMyIssues] = useState<Issues[]>([]);
@@ -55,16 +59,43 @@ const CitizenProfile = () => {
   });
 
   // Show loading state until AuthContext is ready
-  if (isLoading) {
-    return <p className="text-center mt-10">Loading profile...</p>;
-  }
-
-  if (!user) {
-    return <p className="text-center mt-10">Loading profile...</p>;
+  if (isLoading || !user) {
+    return (
+      <div className="min-h-screen bg-[#f3f6f8]">
+        <HeaderAfterAuth />
+        <div className="pt-20 container mx-auto my-9 max-w-4xl space-y-6 px-4">
+          <Card className="bg-white/80 border border-white/20 shadow-lg rounded-xl p-6">
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center space-x-4">
+                  <Skeleton className="h-20 w-20 rounded-full" />
+                  <div className="space-y-2">
+                    <Skeleton className="h-6 w-48" />
+                    <Skeleton className="h-4 w-64" />
+                  </div>
+                </div>
+                <Skeleton className="h-10 w-28" />
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                {[...Array(3)].map((_, i) => (
+                  <div key={i} className="space-y-2">
+                    <Skeleton className="h-4 w-20" />
+                    <Skeleton className="h-10 w-full" />
+                  </div>
+                ))}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+    );
   }
 
   const handleSaveProfile = async () => {
     try {
+      showLoader();
       await updateUserProfile({
         fullName: profile.fullName,
         email: profile.email,
@@ -76,6 +107,8 @@ const CitizenProfile = () => {
     } catch (error) {
       console.error("Update error:", error);
       toast.error("Failed to update profile");
+    } finally {
+      hideLoader();
     }
   };
 
@@ -355,8 +388,24 @@ const CitizenProfile = () => {
           </CardHeader>
           <CardContent>
             {loadingMyIssues ? (
-              <div className="text-center py-6 text-muted-foreground">
-                Loading your issues...
+              <div className="space-y-4">
+                {[...Array(2)].map((_, i) => (
+                  <div key={i} className="border rounded-lg p-4 space-y-3 bg-yellow-50/50">
+                    <div className="flex items-start justify-between">
+                      <div className="space-y-2 w-3/4">
+                        <Skeleton className="h-5 w-1/3 animate-pulse" />
+                        <Skeleton className="h-4 w-full animate-pulse" />
+                      </div>
+                      <Skeleton className="h-6 w-20 rounded-full animate-pulse" />
+                    </div>
+                    <Skeleton className="h-40 w-full rounded-md animate-pulse" />
+                    <Separator className="my-2" />
+                    <div className="space-y-2">
+                      <Skeleton className="h-4 w-1/2 animate-pulse" />
+                      <Skeleton className="h-4 w-1/3 animate-pulse" />
+                    </div>
+                  </div>
+                ))}
               </div>
             ) : myIssues.length === 0 ? (
               <div className="text-center py-6 text-muted-foreground">

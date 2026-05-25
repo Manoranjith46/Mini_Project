@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import styles from './MyReports.module.css';
+import { Skeleton } from '../../components/ui/skeleton';
 
 interface Report {
   _id: string;
@@ -85,7 +86,28 @@ export default function MyReports() {
     }
   };
 
-  if (loading) return <div className={styles.loading}>Loading your reports...</div>;
+  if (loading) {
+    return (
+      <div className="space-y-4 max-w-4xl mx-auto p-6 animate-pulse">
+        <Skeleton className="h-8 w-48 mb-2" />
+        <Skeleton className="h-4 w-72 mb-6" />
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="bg-white rounded-xl shadow border p-6 space-y-4">
+            <div className="flex justify-between">
+              <Skeleton className="h-4 w-24" />
+              <Skeleton className="h-4 w-16" />
+            </div>
+            <Skeleton className="h-6 w-3/4" />
+            <Skeleton className="h-4 w-full" />
+            <div className="flex gap-4">
+              <Skeleton className="h-4 w-32" />
+              <Skeleton className="h-4 w-24" />
+            </div>
+          </div>
+        ))}
+      </div>
+    );
+  }
 
   return (
     <div className={styles.container}>
