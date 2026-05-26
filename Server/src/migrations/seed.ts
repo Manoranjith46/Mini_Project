@@ -47,11 +47,11 @@ async function seed() {
     // Create Citizens
     console.log("👥 Creating citizens...");
     const citizens = await CitizenModel.create([
-      { fullName: "John Doe", email: "john@example.com", phonenumber: "8001234567" },
-      { fullName: "Jane Smith", email: "jane@example.com", phonenumber: "8001234568" },
-      { fullName: "Robert Johnson", email: "robert@example.com", phonenumber: "8001234569" },
-      { fullName: "Emily Wilson", email: "emily@example.com", phonenumber: "8001234570" },
-      { fullName: "Michael Brown", email: "michael@example.com", phonenumber: "8001234571" },
+      { fullName: "John Doe", email: "john@example.com", phonenumber: "+918438052380" },
+      { fullName: "Jane Smith", email: "jane@example.com", phonenumber: "+918001234568" },
+      { fullName: "Robert Johnson", email: "robert@example.com", phonenumber: "+918001234569" },
+      { fullName: "Emily Wilson", email: "emily@example.com", phonenumber: "+918001234570" },
+      { fullName: "Michael Brown", email: "michael@example.com", phonenumber: "+918001234571" },
     ]);
     console.log(`✅ Created ${citizens.length} citizens\n`);
 
@@ -61,7 +61,7 @@ async function seed() {
       {
         fullName: "Admin User",
         email: "admin@civic.gov",
-        phonenumber: "9001234567",
+        phonenumber: "+919025199507",
         department: "Administration",
         adminAccessCode: 1001,
         employeeId: "ADM001",
@@ -69,7 +69,7 @@ async function seed() {
       {
         fullName: "Super Admin",
         email: "superadmin@civic.gov",
-        phonenumber: "9001234568",
+        phonenumber: "+919001234568",
         department: "Administration",
         adminAccessCode: 1002,
         employeeId: "ADM002",
@@ -80,11 +80,11 @@ async function seed() {
     // Create Departments
     console.log("🏢 Creating departments...");
     const departments = await DepartmentModel.create([
-      { fullName: "Raj Kumar", phonenumber: "1001234567", designation: "Department Manager", employeeId: "DEPT001", place: "North Zone" },
-      { fullName: "Priya Singh", phonenumber: "1001234568", designation: "Department Manager", employeeId: "DEPT002", place: "South Zone" },
-      { fullName: "Amit Patel", phonenumber: "1001234569", designation: "Department Manager", employeeId: "DEPT003", place: "Central Area" },
-      { fullName: "Neha Desai", phonenumber: "1001234570", designation: "Department Manager", employeeId: "DEPT004", place: "East Zone" },
-      { fullName: "Vikram Reddy", phonenumber: "1001234571", designation: "Department Manager", employeeId: "DEPT005", place: "West Zone" },
+      { fullName: "Raj Kumar", phonenumber: "+918015138079", designation: "Department Manager", employeeId: "DEPT001", place: "North Zone" },
+      { fullName: "Priya Singh", phonenumber: "+911001234568", designation: "Department Manager", employeeId: "DEPT002", place: "South Zone" },
+      { fullName: "Amit Patel", phonenumber: "+911001234569", designation: "Department Manager", employeeId: "DEPT003", place: "Central Area" },
+      { fullName: "Neha Desai", phonenumber: "+911001234570", designation: "Department Manager", employeeId: "DEPT004", place: "East Zone" },
+      { fullName: "Vikram Reddy", phonenumber: "+911001234571", designation: "Department Manager", employeeId: "DEPT005", place: "West Zone" },
     ]);
     console.log(`✅ Created ${departments.length} departments\n`);
 
@@ -289,11 +289,11 @@ async function seed() {
     console.log("📝 Test Credentials:");
     console.log("─".repeat(50));
     console.log("👤 Citizen Login:");
-    console.log("   Phone: 8001234567\n");
+    console.log("   Phone: 8438052380\n");
     console.log("👨‍💼 Admin Login:");
-    console.log("   Phone: 9001234567\n");
+    console.log("   Phone: 9025199507\n");
     console.log("🏢 Department Manager Login (North Zone):");
-    console.log("   Phone: 1001234567\n");
+    console.log("   Phone: 8015138079\n");
     console.log("─".repeat(50));
   } catch (error) {
     console.error("❌ Seed error:", error);
