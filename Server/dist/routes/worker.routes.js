@@ -14,6 +14,10 @@ router.get("/workers/zone/:zone", auth_middleware_1.authMiddleware, worker_contr
 router.get("/workers/:workerId", auth_middleware_1.authMiddleware, worker_controller_1.getWorkerById);
 // Assign worker to issue
 router.post("/workers/assign", auth_middleware_1.authMiddleware, worker_controller_1.assignWorkerToIssue);
+// Unassign worker from issue
+router.post("/workers/unassign", auth_middleware_1.authMiddleware, worker_controller_1.unassignWorkerFromIssue);
+// Get workers assigned to a specific issue
+router.get("/workers/issue/:issueId", auth_middleware_1.authMiddleware, worker_controller_1.getWorkersForIssue);
 // Get issues assigned to a worker
 router.get("/workers/:workerId/issues", auth_middleware_1.authMiddleware, worker_controller_1.getWorkerAssignedIssues);
 // Update worker profile

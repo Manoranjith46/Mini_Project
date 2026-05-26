@@ -12,7 +12,7 @@ var __importDefault = (this && this.__importDefault) || function (mod) {
     return (mod && mod.__esModule) ? mod : { "default": mod };
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.deleteIssue = exports.getIssues = exports.addReporterToExistingIssue = exports.createIssue = void 0;
+exports.deleteIssue = exports.getIssues = exports.getIssueById = exports.addReporterToExistingIssue = exports.createIssue = void 0;
 const issue_model_1 = require("../models/issue.model");
 const multimedia_model_1 = require("../models/multimedia.model");
 const mongoose_1 = __importDefault(require("mongoose"));
@@ -263,6 +263,70 @@ const addReporterToExistingIssue = (req, res) => __awaiter(void 0, void 0, void 
     }
 });
 exports.addReporterToExistingIssue = addReporterToExistingIssue;
+const getIssueById = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    var _a, _b;
+    try {
+        const { issueId } = req.params;
+        if (!mongoose_1.default.Types.ObjectId.isValid(issueId)) {
+            res.status(400).json({ message: "Invalid issue ID format" });
+            return;
+        }
+        const issue = yield issue_model_1.IssueModel.findById(issueId)
+            .populate("citizenId", "fullName phonenumber email")
+            .populate("reporters", "fullName phonenumber")
+            .populate("handledBy", "fullName department employeeId")
+            .lean();
+        if (!issue) {
+            res.status(404).json({ message: "Issue not found" });
+            return;
+        }
+        // Fetch associated multimedia
+        const media = yield multimedia_model_1.MultimediaModel.find({ issueID: issueId });
+        const issueObj = Object.assign({}, issue);
+        const image = media.length > 0 ? media[0].url : null;
+        res.json({
+            success: true,
+            issue: {
+                _id: issueObj._id,
+                title: issueObj.title,
+                description: issueObj.description,
+                type: issueObj.issueType,
+                location: issueObj.location,
+                reportedBy: ((_a = issueObj.citizenId) === null || _a === void 0 ? void 0 : _a.fullName) || "Anonymous",
+                reportedByPhone: ((_b = issueObj.citizenId) === null || _b === void 0 ? void 0 : _b.phonenumber) || null,
+                reportedAt: issueObj.createdAt,
+                image,
+                status: issueObj.status === "Reported" ? "Pending" : issueObj.status,
+                reporterCount: Array.isArray(issueObj.reporters) ? issueObj.reporters.length : 1,
+                reporters: issueObj.reporters,
+                createdAt: issueObj.createdAt,
+                updatedAt: issueObj.updatedAt,
+                upvotes: issueObj.upvotes || 0,
+                costAmount: issueObj.costAmount || 0,
+                resolvedAt: issueObj.resolvedAt,
+                departmentAssigned: issueObj.departmentAssigned,
+                citizenDetails: issueObj.citizenId ? {
+                    _id: issueObj.citizenId._id,
+                    fullName: issueObj.citizenId.fullName,
+                    email: issueObj.citizenId.email,
+                    phone: issueObj.citizenId.phonenumber,
+                } : null,
+                handledBy: issueObj.handledBy,
+                media: media.map(m => ({
+                    _id: m._id,
+                    fileType: m.fileType,
+                    url: m.url,
+                    filename: m.filename,
+                })),
+            },
+        });
+    }
+    catch (error) {
+        console.error("Error fetching issue by ID:", error);
+        res.status(500).json({ message: "Internal server error", error: error.message });
+    }
+});
+exports.getIssueById = getIssueById;
 const getIssues = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const issues = yield issue_model_1.IssueModel.find({})

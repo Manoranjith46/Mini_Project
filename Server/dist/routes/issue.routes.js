@@ -21,6 +21,7 @@ router.post("/citizen/create-issue", auth_middleware_1.authMiddleware, (req, res
         next();
     });
 }, issues_controllers_1.createIssue);
+router.get("/issue/:issueId", auth_middleware_1.authMiddleware, issues_controllers_1.getIssueById);
 router.get("/all-issues", auth_middleware_1.authMiddleware, issues_controllers_1.getIssues);
 router.post("/issue/add-reporter", auth_middleware_1.authMiddleware, issues_controllers_1.addReporterToExistingIssue);
 router.delete("/issue/:issueId", auth_middleware_1.authMiddleware, issues_controllers_1.deleteIssue);

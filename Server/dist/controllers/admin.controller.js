@@ -219,7 +219,7 @@ const getDashboardStats = (req, res) => __awaiter(void 0, void 0, void 0, functi
         const issuesByType = yield issue_model_1.IssueModel.aggregate([
             {
                 $group: {
-                    _id: "$type",
+                    _id: "$issueType",
                     count: { $sum: 1 },
                 },
             },
@@ -232,10 +232,17 @@ const getDashboardStats = (req, res) => __awaiter(void 0, void 0, void 0, functi
             ? Math.round((resolvedIssues / totalIssues) * 100)
             : 0;
         // Get recent issues (last 5)
-        const recentIssues = yield issue_model_1.IssueModel.find()
+        const recentIssuesRaw = yield issue_model_1.IssueModel.find()
             .sort({ createdAt: -1 })
             .limit(5)
-            .select("title status type createdAt");
+            .select("title status issueType createdAt");
+        const recentIssues = recentIssuesRaw.map((issue) => ({
+            _id: issue._id,
+            title: issue.title,
+            status: issue.status,
+            type: issue.issueType,
+            createdAt: issue.createdAt || new Date(),
+        }));
         res.status(200).json({
             success: true,
             stats: {

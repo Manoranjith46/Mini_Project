@@ -9,4 +9,7 @@ router.post("/department/managers", auth_middleware_1.authMiddleware, department
 router.get("/department/profile", auth_middleware_1.authMiddleware, department_controller_1.getDepartmentProfile);
 router.put("/department/:id", auth_middleware_1.authMiddleware, department_controller_1.updateDepartmentProfile);
 router.get("/department/issues", auth_middleware_1.authMiddleware, department_controller_1.getDepartmentIssues);
+router.get("/department/analytics", auth_middleware_1.authMiddleware, department_controller_1.getDepartmentAnalytics);
+router.put("/department/issue/:id/status", auth_middleware_1.authMiddleware, department_controller_1.updateIssueStatusByDepartment);
+router.put("/department/issue/:id/cost", auth_middleware_1.authMiddleware, department_controller_1.updateIssueCostByDepartment);
 exports.default = router;

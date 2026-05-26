@@ -94,16 +94,41 @@ function seed() {
             ]);
             console.log(`✅ Created ${departments.length} departments\n`);
             // Create Workers
-            console.log("👷 Creating workers...");
-            const workers = yield worker_model_1.WorkerModel.create([
-                { fullName: "Bob Kumar", phonenumber: "2001234567", email: "bob.worker@civic.gov", employeeId: "WRK001", departmentId: departments[0]._id, zone: "North Zone", specialization: ["Road Infrastructure", "General"], isActive: true },
-                { fullName: "Alice Verma", phonenumber: "2001234568", email: "alice.worker@civic.gov", employeeId: "WRK002", departmentId: departments[0]._id, zone: "North Zone", specialization: ["Waste Management"], isActive: true },
-                { fullName: "Charlie Nair", phonenumber: "2001234569", email: "charlie.worker@civic.gov", employeeId: "WRK003", departmentId: departments[1]._id, zone: "South Zone", specialization: ["Environmental Issues"], isActive: true },
-                { fullName: "Divya Rao", phonenumber: "2001234570", email: "divya.worker@civic.gov", employeeId: "WRK004", departmentId: departments[1]._id, zone: "South Zone", specialization: ["Public Safety"], isActive: true },
-                { fullName: "Dave Thomas", phonenumber: "2001234571", email: "dave.worker@civic.gov", employeeId: "WRK005", departmentId: departments[2]._id, zone: "Central Area", specialization: ["Utilities & Infrastructure"], isActive: true },
-                { fullName: "Eve Reddy", phonenumber: "2001234572", email: "eve.worker@civic.gov", employeeId: "WRK006", departmentId: departments[3]._id, zone: "East Zone", specialization: ["Public Safety", "General"], isActive: true },
-                { fullName: "Farhan Ali", phonenumber: "2001234573", email: "farhan.worker@civic.gov", employeeId: "WRK007", departmentId: departments[4]._id, zone: "West Zone", specialization: ["Road Infrastructure", "Waste Management"], isActive: true },
-            ]);
+            console.log("👷 Creating 20 workers...");
+            const workerNames = [
+                "Bob Kumar", "Alice Verma", "Charlie Nair", "Divya Rao", "Dave Thomas",
+                "Eve Reddy", "Farhan Ali", "Grace Hopper", "Hari Prasad", "Indira Sen",
+                "Jack Sparrow", "Kiran Shah", "Lalitha Murthy", "Manoj Kumar", "Nisha Patel",
+                "Omar Farooq", "Pooja Hegde", "Quincy Jones", "Rahul Sharma", "Sita Ram"
+            ];
+            const specializationsPool = [
+                ["Road Infrastructure", "General"],
+                ["Waste Management"],
+                ["Environmental Issues"],
+                ["Utilities & Infrastructure"],
+                ["Public Safety"],
+                ["Public Safety", "General"],
+                ["Road Infrastructure", "Waste Management"],
+                ["Environmental Issues", "General"],
+            ];
+            const workerData = workerNames.map((name, idx) => {
+                const dept = departments[idx % departments.length];
+                const phoneNum = String(2001234567 + idx);
+                const email = `${name.toLowerCase().replace(" ", ".")}@civic.gov`;
+                const empId = `WRK${String(idx + 1).padStart(3, "0")}`;
+                const specs = specializationsPool[idx % specializationsPool.length];
+                return {
+                    fullName: name,
+                    phonenumber: phoneNum,
+                    email: email,
+                    employeeId: empId,
+                    departmentId: dept._id,
+                    zone: dept.place,
+                    specialization: specs,
+                    isActive: true,
+                };
+            });
+            const workers = yield worker_model_1.WorkerModel.create(workerData);
             console.log(`✅ Created ${workers.length} workers\n`);
             // Create Issues and IssueStatusHistory
             console.log("🚨 Creating issues and status history...");

@@ -9,7 +9,7 @@ var __awaiter = (this && this.__awaiter) || function (thisArg, _arguments, P, ge
     });
 };
 Object.defineProperty(exports, "__esModule", { value: true });
-exports.updateWorkerProfile = exports.getWorkerAssignedIssues = exports.assignWorkerToIssue = exports.getWorkerById = exports.getWorkersByZone = exports.getWorkersByDepartment = exports.createWorker = void 0;
+exports.unassignWorkerFromIssue = exports.getWorkersForIssue = exports.updateWorkerProfile = exports.getWorkerAssignedIssues = exports.assignWorkerToIssue = exports.getWorkerById = exports.getWorkersByZone = exports.getWorkersByDepartment = exports.createWorker = void 0;
 const worker_model_1 = require("../models/worker.model");
 const issue_model_1 = require("../models/issue.model");
 const createWorker = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
@@ -159,3 +159,39 @@ const updateWorkerProfile = (req, res) => __awaiter(void 0, void 0, void 0, func
     }
 });
 exports.updateWorkerProfile = updateWorkerProfile;
+const getWorkersForIssue = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { issueId } = req.params;
+        const workers = yield worker_model_1.WorkerModel.find({
+            assignedIssues: issueId,
+        }).lean();
+        res.json({ success: true, data: workers });
+    }
+    catch (error) {
+        console.error("Error fetching workers for issue:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.getWorkersForIssue = getWorkersForIssue;
+const unassignWorkerFromIssue = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
+    try {
+        const { workerId, issueId } = req.body;
+        if (!workerId || !issueId) {
+            res.status(400).json({ message: "Worker ID and Issue ID required" });
+            return;
+        }
+        const worker = yield worker_model_1.WorkerModel.findById(workerId);
+        if (!worker) {
+            res.status(404).json({ message: "Worker not found" });
+            return;
+        }
+        worker.assignedIssues = worker.assignedIssues.filter((id) => id.toString() !== issueId);
+        yield worker.save();
+        res.json({ success: true, message: "Worker unassigned from issue", data: worker });
+    }
+    catch (error) {
+        console.error("Error unassigning worker:", error);
+        res.status(500).json({ message: "Internal server error" });
+    }
+});
+exports.unassignWorkerFromIssue = unassignWorkerFromIssue;

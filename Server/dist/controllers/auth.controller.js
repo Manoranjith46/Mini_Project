@@ -18,8 +18,7 @@ const user_model_1 = require("../models/user.model");
 const citizen_model_1 = require("../models/citizen.model");
 const admin_model_1 = require("../models/admin.model");
 const department_model_1 = require("../models/department.model");
-// Demo OTP - always accepted in development
-const DEMO_OTP = "123456";
+const messenger_1 = require("../utils/messenger");
 const sendOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
     try {
         const { phonenumber: credential } = req.body;
@@ -47,12 +46,40 @@ const sendOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
                 roleRefId: newCitizen._id,
             });
         }
-        // In demo mode, just store a dummy OTP
-        const otp = DEMO_OTP;
-        user.otpHash = otp; // In production, store bcrypt hash
-        user.otpExpiry = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
-        yield user.save();
-        console.log(`📱 OTP for ${credential}: ${otp} (Demo Mode)`);
+        // Determine the phone number to send OTP to.
+        // If the credential is an employeeId (not starting with +), resolve the phone from the user record.
+        let phoneNumber = credential;
+        if (!credential.startsWith("+")) {
+            // credential is an employeeId, get the actual phone number from the user record
+            if (user.phonenumber) {
+                phoneNumber = user.phonenumber;
+            }
+            else {
+                res.status(400).json({
+                    success: false,
+                    message: "No phone number associated with this Employee ID",
+                });
+                return;
+            }
+        }
+        // Ensure phone number is in E.164 format
+        if (!/^\+\d{1,15}$/.test(phoneNumber)) {
+            res.status(400).json({
+                success: false,
+                message: "Invalid phone number format. Use E.164 format: +91XXXXXXXXXX",
+            });
+            return;
+        }
+        // Send OTP via Twilio Verify API
+        const result = yield (0, messenger_1.sendSmsOtp)(phoneNumber);
+        if (!result.success) {
+            res.status(400).json({
+                success: false,
+                message: result.message,
+            });
+            return;
+        }
+        console.log(`📱 OTP sent to ${phoneNumber} via Twilio Verify`);
         res.json({
             success: true,
             role: user.role,
@@ -80,34 +107,45 @@ const verifyOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         });
         // If user does not exist, create a new citizen account and associated user record
         if (!user) {
-            // Create a basic citizen profile (you may extend with additional fields as needed)
             const newCitizen = yield citizen_model_1.CitizenModel.create({
                 phonenumber: credential,
                 fullName: "Anonymous",
                 email: undefined,
             });
-            // Create the corresponding user entry linking to the citizen profile
             user = yield user_model_1.UserModel.create({
                 phonenumber: credential,
                 role: "citizen",
                 roleRefId: newCitizen._id,
             });
         }
-        // Demo mode: accept DEMO_OTP always
-        const isValidOtp = otp === DEMO_OTP || otp === user.otpHash;
-        if (!isValidOtp) {
-            res.status(401).json({ success: false, message: "Invalid OTP" });
+        // Determine the phone number used for Twilio verification
+        let phoneNumber = credential;
+        if (!credential.startsWith("+")) {
+            if (user.phonenumber) {
+                phoneNumber = user.phonenumber;
+            }
+            else {
+                res.status(400).json({
+                    success: false,
+                    message: "No phone number associated with this Employee ID",
+                });
+                return;
+            }
+        }
+        // Validate OTP format
+        if (!/^\d{6}$/.test(otp)) {
+            res.status(400).json({
+                success: false,
+                message: "OTP must be a 6-digit code",
+            });
             return;
         }
-        // Check expiry
-        if (user.otpExpiry && new Date() > user.otpExpiry) {
-            res.status(401).json({ success: false, message: "OTP expired" });
+        // Verify OTP via Twilio Verify API
+        const verifyResult = yield (0, messenger_1.verifySmsOtp)(phoneNumber, otp);
+        if (!verifyResult.success) {
+            res.status(401).json({ success: false, message: verifyResult.message });
             return;
         }
-        // Clear OTP
-        user.otpHash = undefined;
-        user.otpExpiry = undefined;
-        yield user.save();
         // Fetch the role-specific profile
         let profile = null;
         const role = user.role;
@@ -151,7 +189,7 @@ const verifyOtp = (req, res) => __awaiter(void 0, void 0, void 0, function* () {
         else if (role === "citizen") {
             responseUser.email = profile.email;
         }
-        // Store role & userId in localStorage-friendly format
+        // Return token and user
         res.json({
             success: true,
             token,
